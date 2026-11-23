@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/favicon.ico">
+<title>AlgoBond — рабочее пространство</title>
+<style>
+:root{--navy:#1d324b;--green:#52aa7e;--green2:#eaf6ef;--ink:#263648;--muted:#81909e;--line:#e5eaf0;--paper:#f5f7fb;--danger:#b34b4b}*{box-sizing:border-box}body{margin:0;font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--paper);font-size:14px}button,input,select{font:inherit}button,a,input,select{outline-offset:4px}button,a{touch-action:manipulation}button{cursor:pointer}button:disabled{cursor:wait;opacity:.55}a{color:inherit;text-decoration:none}.hidden{display:none!important}.shell{display:grid;grid-template-columns:252px minmax(0,1fr);min-height:100vh}.sidebar{background:white;border-right:1px solid var(--line);padding:22px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}.brand{height:83px;border-radius:15px;background:var(--navy) url('/logo.png') center center/220px auto no-repeat}.caption{font-size:9px;letter-spacing:2px;color:var(--muted);margin:17px 6px 32px}.nav{display:grid;gap:8px}.nav a{padding:13px 15px;border-radius:10px;display:flex;align-items:center;gap:12px;color:#748391;font-weight:600;font-size:13px}.nav a.active{background:var(--green2);color:#378d64}.nav a:hover{background:#f0f4f8}.nav svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.6}.sidebar-bottom{margin-top:auto;padding:17px 8px 2px;color:var(--muted);font-size:11px;line-height:1.8;border-top:1px solid var(--line)}.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:7px}.main{min-width:0}.topbar{height:86px;background:white;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 34px;gap:16px}.eyebrow{font-size:9px;letter-spacing:1.9px;color:var(--muted);text-transform:uppercase;margin-bottom:7px}.topbar h1{font-size:22px;letter-spacing:-.6px;margin:0}.top-status{font-size:11px;color:var(--muted)}.content{max-width:1580px;margin:auto;padding:30px 34px 44px}.hero{border-radius:18px;background:var(--navy);padding:32px;color:white;display:flex;gap:30px;align-items:center;justify-content:space-between;box-shadow:0 10px 25px #1d324b0b}.hero .eyebrow{color:#a8bacb}.hero h2{font-size:32px;margin:9px 0 12px;letter-spacing:-1px}.hero p{margin:0;color:#b8c8d6;max-width:650px;line-height:1.8;font-size:14px}.hero-badge{border:1px solid #ffffff22;border-radius:16px;padding:20px;min-width:160px}.hero-badge strong{font-size:32px;display:block}.hero-badge span{font-size:11px;color:#b8c8d6}.section-title{display:flex;align-items:center;justify-content:space-between;margin:30px 0 17px}.section-title h2{font-size:18px;margin:0}.muted{color:var(--muted)}.small{font-size:11px;line-height:1.7}.cards{display:grid;grid-template-columns:1fr 1fr;gap:20px}.card{background:white;border:1px solid var(--line);border-radius:16px;padding:25px;min-width:0}.feature-card{display:flex;flex-direction:column;align-items:flex-start;min-height:260px;transition:transform .15s,box-shadow .15s}.feature-card:hover{transform:translateY(-3px);box-shadow:0 15px 35px #1d324b0c}.tile-icon{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;background:var(--green2);color:#44936c;margin-bottom:18px}.tile-icon svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.5}.feature-card h3{margin:0 0 10px;font-size:21px}.feature-card p{margin:0 0 22px;line-height:1.8;color:var(--muted);max-width:430px}.feature-card .btn{margin-top:auto}.btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:11px 17px;border-radius:9px;border:1px solid var(--line);background:white;color:var(--ink);font-weight:600;font-size:12px;white-space:nowrap}.btn.primary{background:var(--green);border-color:var(--green);color:white;box-shadow:0 4px 10px #52aa7e19}.btn:hover{filter:brightness(.97)}.btn.quiet{background:#f6f8fb}.info-strip{padding:18px 21px;border-radius:12px;border:1px solid var(--line);margin-top:22px;line-height:1.8;background:#fff;color:var(--muted);font-size:12px}.monitor-layout{display:grid;grid-template-columns:292px minmax(0,1fr);gap:22px;align-items:start}.connect-card{position:sticky;top:22px;padding:22px}.connect-card h2{font-size:17px;margin:0 0 8px}.label{display:block;color:#586a79;font-weight:600;font-size:11px;margin:21px 0 8px}.input{width:100%;border:1px solid #dfe5ec;background:white;border-radius:8px;padding:11px;color:var(--ink);font-size:12px;min-height:39px}.input:focus{border-color:var(--green);outline:2px solid #52aa7e22}.segments{display:flex;background:#f0f4f8;border-radius:9px;padding:4px;gap:3px}.segments button{flex:1;border:0;padding:9px 7px;background:transparent;border-radius:6px;color:#8794a1;font-size:11px;font-weight:600}.segments button.active{background:white;box-shadow:0 2px 6px #1931490b;color:#34495c}.connect-card .btn{width:100%;margin-top:16px}.source-badge{margin:12px 0 0;color:var(--muted);font-size:10px;line-height:1.8;overflow-wrap:anywhere}.monitor-pane{min-width:0}.empty{min-height:390px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.empty .tile-icon{width:60px;height:60px}.empty h2{font-size:20px;margin:0 0 10px}.empty p{font-size:12px;max-width:430px;color:var(--muted);line-height:1.8}.alert{border-radius:9px;padding:12px 15px;background:#fff8e9;border:1px solid #eeddb6;color:#99732c;font-size:12px;line-height:1.7;margin-bottom:13px;white-space:pre-line}.alert.error{color:#a64949;background:#fff0f0;border-color:#efd6d6}.alert.info{color:#52798e;background:#edf5fa;border-color:#d7e7f1}.monitor-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}.monitor-head h2{margin:0 0 5px;font-size:22px;letter-spacing:-.5px}.monitor-head p{font-size:11px;color:var(--muted);margin:0;line-height:1.8}.pill{padding:7px 10px;background:var(--green2);color:#458461;border-radius:20px;font-size:10px;white-space:nowrap}.viewbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:15px 18px;margin-bottom:16px}.viewbar .segments{min-width:250px}.viewbar .input{width:225px}.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}.kpi{padding:18px 17px}.kpi .k-label{font-size:10px;color:var(--muted);margin-bottom:12px}.kpi strong{display:block;font-size:22px;letter-spacing:-.7px;overflow-wrap:anywhere}.kpi small{font-size:9px;color:var(--muted);display:block;margin-top:8px}.positive{color:#3d9a6b}.negative{color:#b75555}.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}.chart-card{padding:20px;min-height:244px}.chart-card h3{font-size:13px;margin:0 0 6px}.chart-card p{font-size:10px;color:var(--muted);margin:0 0 12px}.chart{height:170px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px}.chart svg{width:100%;height:100%;overflow:visible}.legend{font-size:10px;color:var(--muted);margin-top:8px}.table-card{padding:0;overflow:hidden}.table-toolbar{padding:16px 18px;display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;border-bottom:1px solid var(--line)}.tabs{display:flex;gap:7px;align-items:center}.tabs button{background:transparent;border:0;color:var(--muted);font-size:11px;padding:8px;border-radius:6px}.tabs button.active{color:#3d976a;background:var(--green2);font-weight:600}.table-toolbar input{width:190px}.table-wrap{overflow:auto;max-height:530px}table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:11px}th{color:#7b8a99;background:#f9fafc;font-size:10px;text-align:left;font-weight:600;padding:13px 16px;position:sticky;top:0;border-bottom:1px solid var(--line);z-index:1}th button{border:0;background:transparent;color:inherit;font:inherit;padding:0;text-align:left}td{padding:13px 16px;border-bottom:1px solid #f0f3f7}tbody tr:hover{background:#fafcfd}.num{text-align:right;font-variant-numeric:tabular-nums}.symbol strong{font-size:11px;display:block;font-weight:600}.symbol span{color:var(--muted);font-size:10px;display:block;max-width:170px;overflow:hidden;text-overflow:ellipsis;margin-top:3px}.table-footer{padding:14px 18px;color:var(--muted);font-size:10px;display:flex;align-items:center;justify-content:space-between;gap:12px}.pages{display:flex;gap:6px}.pages .btn{padding:6px 11px}.row-empty{padding:50px;text-align:center;color:var(--muted)}.footer-note{margin-top:18px;color:var(--muted);font-size:10px;line-height:1.8}.spinner{display:inline-block;width:15px;height:15px;border:2px solid #ffffff55;border-top-color:currentColor;border-radius:50%;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.home-metrics{display:flex;gap:24px;margin-top:25px}.home-metrics strong{font-size:24px;display:block}.home-metrics span{font-size:10px;color:var(--muted)}
+@media(min-width:1500px){.monitor-layout{grid-template-columns:310px minmax(0,1fr)}}@media(max-width:1200px){.shell{grid-template-columns:215px minmax(0,1fr)}.sidebar{padding:18px 14px}.brand{background-size:185px}.content{padding:25px}.monitor-layout{grid-template-columns:240px minmax(0,1fr);gap:16px}.kpis{grid-template-columns:1fr 1fr}.charts{grid-template-columns:1fr}.hero h2{font-size:27px}.hero-badge{display:none}.topbar{padding:0 25px}}@media(max-width:900px){.shell{grid-template-columns:1fr}.sidebar{position:static;height:auto;padding:12px 18px;display:block}.brand{width:145px;height:53px;float:left;background-size:140px}.caption,.sidebar-bottom{display:none}.nav{display:flex;justify-content:flex-end;min-height:53px;gap:3px}.nav a{padding:10px;font-size:11px}.nav svg{display:none}.monitor-layout{grid-template-columns:1fr}.connect-card{position:static}.connect-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}.charts{grid-template-columns:1fr 1fr}.topbar{height:77px}.top-status{display:none}}@media(max-width:600px){.nav a{font-size:10px;padding:8px}.brand{width:112px;background-size:108px}.content{padding:18px 14px}.cards,.charts,.connect-grid{grid-template-columns:1fr}.hero{padding:25px}.hero h2{font-size:25px}.hero p{font-size:12px}.topbar{padding:0 16px}.topbar h1{font-size:19px}.kpi strong{font-size:19px}.viewbar .input{width:100%}.viewbar .segments{width:100%}.table-toolbar input{width:100%}.monitor-head{align-items:flex-start}.pill{font-size:9px}.table-toolbar{gap:7px}.hero .eyebrow{font-size:8px}}
+.chart-tooltip{position:fixed;z-index:1000;pointer-events:none;max-width:calc(100vw - 24px);padding:11px 15px;border-radius:10px;background:#1d324b;color:#fff;box-shadow:0 8px 28px #142a4230;font-size:11px;line-height:1.6}.chart-tooltip strong,.chart-tooltip span{display:block}.chart-tooltip strong{font-weight:500;color:#bdcddd}.chart-tooltip span{font-size:15px;font-weight:600;white-space:nowrap}.equity-hit{cursor:crosshair;outline:none}.equity-hit:focus-visible{stroke:#52aa7e;stroke-width:1}.maturity-bar{cursor:crosshair;transition:fill .12s}.maturity-bar:hover,.maturity-bar:focus{fill:#1d324b;outline:none;stroke:#52aa7e;stroke-width:1.5}
+
+.connection-toolbar{display:flex;align-items:center;gap:15px;margin-bottom:14px}.connection-toolbar:has(.hidden):has(#compactProgress:empty){margin:0}.connection-toolbar .btn{max-width:430px;overflow:hidden;text-overflow:ellipsis;justify-content:flex-start}.connect-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}.connect-heading h2{margin:0}.connect-heading .btn{width:auto;margin:0;padding:4px 11px}.monitor-layout.connection-collapsed{grid-template-columns:minmax(0,1fr)}.connect-card .segments button{font-size:10px;padding:9px 4px}.account-filter{padding:16px 18px;margin-bottom:15px}.filter-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;font-size:12px}.filter-heading .btn{padding:6px 10px;margin-left:5px}.filter-items{display:flex;gap:8px;flex-wrap:wrap;max-height:160px;overflow:auto}.filter-chip{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-left:3px solid var(--green);padding:8px 10px;border-radius:8px;font-size:10px;cursor:pointer;background:#fff}.filter-chip input{accent-color:var(--green)}.account-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;flex:none}.account-summary{padding:0;margin-bottom:18px;max-height:280px;overflow:auto}.account-summary td,.account-summary th{padding:11px 13px}.account-title{max-width:230px;overflow:hidden;text-overflow:ellipsis}.account-title small{display:block;color:var(--muted);margin-top:3px;font-size:9px}.total-line{display:block;font-size:19px;line-height:1.6;white-space:nowrap}.multi-chart{height:auto;display:block}.currency-chart{margin-top:12px}.currency-chart>strong{display:block;font-size:10px;color:var(--muted);margin-bottom:5px}.multi-chart svg{display:block;width:100%;height:170px}.legend-items{display:flex;gap:8px 13px;flex-wrap:wrap}.legend-item{display:inline-flex;align-items:center;gap:3px;font-size:9px}.account-band td{background:#eff4f8;font-weight:600;color:#40576c;border-left:3px solid var(--green)}.chart-tooltip .tooltip-row{display:flex;align-items:center;justify-content:space-between;gap:15px;font-size:11px;font-weight:500;white-space:normal}.chart-tooltip .tooltip-row b{white-space:nowrap;font-weight:600}.chart-tooltip .tooltip-label{font-size:10px;max-width:190px}.chart-tooltip .tooltip-more{font-size:10px;color:#bdcddd;font-weight:400}.chart-tooltip{max-height:80vh;overflow:hidden}.charts .multi-chart{min-height:170px}
+.chart-tooltip .tooltip-label{display:flex;align-items:center;gap:4px}.chart-tooltip .account-dot{display:inline-block}.legend-items{max-height:110px;overflow:auto}
+.filter-heading,.connection-toolbar{flex-wrap:wrap}.chart-tooltip .tooltip-label>span{font-size:10px;font-weight:500;white-space:normal}
+.log-card{padding:20px}.log-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.log-tabs{max-width:100%;flex-wrap:wrap}.log-meta{color:var(--muted);margin:16px 0 10px}.log-output{margin:0;padding:14px 16px;border:1px solid var(--line);border-radius:8px;background:var(--paper);white-space:pre-wrap;overflow-wrap:anywhere;overflow:auto;min-height:200px;max-height:65vh;font:13px/1.55 'Cascadia Mono',Consolas,monospace}
+.about-guide{max-width:1080px;margin-inline:auto;font-size:14px;line-height:1.65;overflow-wrap:anywhere}
+.about-guide h2{margin:28px 0 12px;padding-top:18px;border-top:1px solid var(--line);font-size:20px}
+.about-guide h2:first-child{margin-top:0;padding-top:0;border:0}
+.about-guide h3{margin:22px 0 8px;font-size:16px}
+.about-guide a{color:#276747;text-decoration:underline;text-underline-offset:3px}
+.about-guide > ul:first-of-type{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0 0;padding:0;list-style:none}
+.about-guide > ul:first-of-type a{display:inline-block;padding:8px 13px;border-radius:8px;background:var(--green2);font-weight:600}
+.about-guide li+li{margin-top:3px}.about-guide > ul:first-of-type li{margin:0}
+.about-guide :not(pre)>code{padding:2px 4px;border-radius:4px;background:var(--paper)}
+.about-guide pre{padding:14px;overflow:auto;border-radius:8px;background:var(--paper);line-height:1.5}
+.about-guide table{display:block;overflow-x:auto;white-space:normal;font-size:inherit}
+.about-guide th{position:static;font-size:inherit;color:var(--ink)}
+.about-guide th,.about-guide td{padding:9px 12px;vertical-align:top}
+@media(min-width:1101px){.cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.nav{flex-wrap:wrap}}
+</style></head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+  <div class="brand" role="img" aria-label="AlgoBond"></div><div class="caption">РАБОЧЕЕ ПРОСТРАНСТВО</div>
+  <nav class="nav" aria-label="Основная навигация">
+    <a href="/" id="navHome"><svg viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v10h-6v-7H9v7H3Z"/></svg>Главная</a>
+    <a href="/monitor" id="navMonitor"><svg viewBox="0 0 24 24"><path d="M3 4v16h18M7 15l4-5 4 3 6-8"/></svg>Мониторинг</a>
+    <a href="/autostart"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Автозапуски</a>
+    <a href="/editor"><svg viewBox="0 0 24 24"><path d="M5 3h9l5 5v13H5ZM14 3v6h5M8 13h8M8 17h6"/></svg>Конфигурации</a>
+    <a href="/logs" id="navLogs"><svg viewBox="0 0 24 24"><path d="M5 3h14v18H5ZM8 8h8M8 12h8M8 16h5"/></svg>Логи</a>
+    <a href="/about" id="navAbout"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v2"/></svg>О программе</a>
+  </nav>
+  <div class="sidebar-bottom"><span class="dot"></span>Локальное приложение<br>Портфель и история из базы<br>Торговые команды не выполняются</div>
+</aside>
+<main class="main">
+<header class="topbar"><div><div class="eyebrow">ALGOBOND · ВАШИ ПОРТФЕЛИ</div><h1 id="pageTitle">Рабочее пространство</h1></div><div class="top-status"><span class="dot"></span>Подключение на этом компьютере</div></header>
+<div class="content">
+  <section id="homeView">
+    <div class="hero"><div><div class="eyebrow">ПОРТФЕЛЬ ПОД КОНТРОЛЕМ</div><h2>Все инструменты рядом</h2><p>Смотрите сохранённое состояние счёта, возвращайтесь к истории портфеля и управляйте конфигурациями AlgoBond в одном пространстве.</p></div></div>
+    <div class="section-title"><h2>Выберите раздел</h2></div>
+    <div class="cards">
+      <article class="card feature-card"><div class="tile-icon"><svg viewBox="0 0 24 24"><path d="M3 4v16h18M7 15l4-5 4 3 6-8"/></svg></div><h3>Мониторинг портфеля</h3><p>Последний снимок, история счёта, состав портфеля и график погашений. Подключение к базе выбранного профиля.</p><a class="btn primary" href="/monitor">Открыть мониторинг <span aria-hidden="true">↗</span></a></article>
+      <article class="card feature-card"><div class="tile-icon"><svg viewBox="0 0 24 24"><path d="M5 3h9l5 5v13H5ZM14 3v6h5M8 13h8M8 17h6"/></svg></div><h3>Редактор конфигураций</h3><p>Профили мониторинга и торговли, настройки стратегии, этапы и расписание. Проверка изменений перед сохранением.</p><a class="btn" href="/editor">Открыть редактор <span aria-hidden="true">↗</span></a></article>
+      <article class="card feature-card"><div class="tile-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Автозапуски</h3><p>Расписания мониторинга, торговли и других сценариев. Ручной запуск, управление заданиями и пакеты для Windows и Linux.</p><a class="btn" href="/autostart">Настроить расписание ↗</a></article>
+      <article class="card feature-card"><div class="tile-icon"><svg viewBox="0 0 24 24"><path d="M5 3h14v18H5ZM8 8h8M8 12h8M8 16h5"/></svg></div><h3>Логи</h3><p>Ошибки, диагностика и результаты отправки заявок.</p><a class="btn" href="/logs">Открыть логи ↗</a></article>
+      <article class="card feature-card"><div class="tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v2"/></svg></div><h3>О программе</h3><p>Мобильное приложение для Android и руководство по эксплуатации AlgoBond.</p><a class="btn" href="/about">Открыть раздел ↗</a></article>
+    </div>
+    <div class="home-metrics"><div><strong id="monitorCount">—</strong><span>профилей мониторинга</span></div><div><strong id="tradingCount">—</strong><span>торговых профилей</span></div><div><strong id="dbCount">—</strong><span>профилей с базой</span></div></div>
+    <div class="info-strip">«Текущий портфель» — последний снимок, записанный в базу. Дата снимка всегда показана в мониторинге. Обновление страницы перечитывает базу.</div>
+  </section>
+  <section id="monitorView" class="hidden">
+    <div class="connection-toolbar"><button class="btn quiet hidden" id="connectionToggle" aria-controls="connectionPanel" aria-expanded="false">⚙ Подключение</button><span id="compactProgress" class="small muted"></span></div>
+    <div class="monitor-layout" id="monitorLayout">
+      <aside class="card connect-card" id="connectionPanel">
+        <div class="connect-heading"><h2>Подключение</h2><button class="btn quiet" id="collapseConnection" aria-label="Свернуть подключение" title="Свернуть">−</button></div>
+        <p class="small muted">Один профиль или все конфигурации</p>
+        <div class="connect-grid"><div>
+          <label class="label">Папки конфигураций</label>
+          <div class="segments" role="group" aria-label="Режим конфигураций"><button type="button" data-mode="monitoring" class="active" aria-pressed="true">Мониторинг</button><button type="button" data-mode="trading" aria-pressed="false">Торговля</button><button type="button" data-mode="mixed" aria-pressed="false">Смешанный</button></div>
+          <label class="label">Выбор файлов</label>
+          <div class="segments" role="group" aria-label="Выбор конфигураций"><button type="button" data-selection="one" class="active" aria-pressed="true">По одной</button><button type="button" data-selection="all" aria-pressed="false">Все конфигурации</button></div>
+          <div id="profileFields"><label class="label" for="profileSearch">Найти профиль</label><input class="input" id="profileSearch" placeholder="Имя файла или портфеля…"><label class="label" for="profile">Конфигурация</label><select id="profile" class="input"></select></div>
+          <div id="profileHint" class="source-badge"></div>
+        </div><div>
+          <button class="btn primary" id="connect">Подключиться к базе</button>
+          <p id="connectionProgress" class="source-badge" role="status"></p>
+          <div id="accountPicker"><label class="label" for="account">Счёт в базе</label><select id="account" class="input" disabled><option value="">Сначала подключитесь</option></select><p id="accountHint" class="source-badge">В списке отображаются только счета с login из выбранной конфигурации.</p></div>
+          <a class="btn quiet" href="/editor">Редактировать конфигурации ↗</a>
+        </div></div>
+      </aside>
+      <div class="monitor-pane"><div id="globalError" class="alert error hidden" role="alert"></div><div id="catalogMessage" class="alert info hidden" role="status"></div>
+        <div class="card empty" id="empty"><div class="tile-icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/></svg></div><h2 id="emptyTitle">Портфель из вашей базы</h2><p id="emptyText">Выберите конфигурацию слева и подключитесь. Доступны SQLite, PostgreSQL и ClickHouse.</p></div>
+        <div id="portfolio" class="hidden">
+          <div class="monitor-head"><div><h2 id="accountName"></h2><p id="accountMeta"></p></div><span class="pill" id="databaseBadge"></span></div>
+          <div class="card viewbar"><div class="segments" role="group" aria-label="Период просмотра"><button id="latestView" class="active" aria-pressed="true">Текущий снимок</button><button id="historyView" aria-pressed="false">История</button></div><select id="snapshotDate" class="input" aria-label="Дата и время снимка" disabled></select><div id="dayPicker" class="hidden" style="display:flex;gap:8px"><input type="date" class="input" style="width:150px" id="historyDay" aria-label="День исторического состояния"><button class="btn" id="findDay">На дату</button></div><button class="btn" id="refresh">↻ Обновить</button></div>
+          <div class="card account-filter hidden" id="accountFilters"><div class="filter-heading"><strong id="accountFilterCount"></strong><input class="input" id="accountFilterSearch" placeholder="Найти счёт…" aria-label="Поиск в фильтре счетов" style="max-width:210px"><div><button class="btn quiet" id="selectAllAccounts">Все счета</button><button class="btn quiet" id="clearAccounts">Очистить</button></div></div><div id="accountFilterItems" class="filter-items"></div></div>
+          <div id="snapshotWarnings"></div>
+          <div class="kpis"><div class="card kpi"><div class="k-label" id="equityLabel">Стоимость счёта</div><strong id="equity">—</strong><small>equity · AccountInfo</small></div><div class="card kpi"><div class="k-label" id="balanceLabel">Баланс</div><strong id="balance">—</strong><small>balance · AccountInfo</small></div><div class="card kpi"><div class="k-label">Результат позиций</div><strong id="positionProfit">—</strong><small>Сумма profit без строки денежных средств</small></div><div class="card kpi"><div class="k-label">Позиций в портфеле</div><strong id="positionCount">—</strong><small>Количество записей SymbolsInfo без строки денег</small></div></div>
+          <div id="accountSummary" class="card account-summary hidden"></div>
+          <div class="charts"><div class="card chart-card"><h3>Стоимость счёта в истории</h3><p>equity · доступные снимки до выбранного момента</p><div id="equityChart" class="chart"></div><div class="legend" id="equityLegend"></div></div><div class="card chart-card"><h3>План погашений по месяцам</h3><p>Сумма income из PlanningSymbolInfo · без денежных строк</p><div id="maturityChart" class="chart"></div><div class="legend" id="maturityLegend"></div></div></div>
+          <div class="card table-card"><div class="table-toolbar"><div class="tabs" role="group" aria-label="Таблица данных"><button data-table="positions" class="active" aria-pressed="true">Портфель</button><button data-table="orders" aria-pressed="false">Лимитные заявки</button><button data-table="planning" aria-pressed="false">Погашения</button><button data-table="account_info" aria-pressed="false">Счёт</button><button data-table="history" aria-pressed="false">История счёта</button></div><input id="tableSearch" class="input" placeholder="Поиск по таблице…" aria-label="Поиск по таблице"></div><div class="table-wrap"><table><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table></div><div class="table-footer"><span id="tableInfo"></span><div class="pages"><button class="btn" id="prevPage" aria-label="Предыдущая страница">←</button><button class="btn" id="nextPage" aria-label="Следующая страница">→</button></div></div></div>
+          <p class="footer-note" id="sourceDates"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="logsView" class="hidden" aria-label="Логи AlgoBond">
+    <div class="card log-card">
+      <div class="log-toolbar">
+        <div class="segments log-tabs" role="group" aria-label="Вид журнала">
+          <button type="button" data-log="errors" class="active" aria-pressed="true">Ошибки</button>
+          <button type="button" data-log="debug" aria-pressed="false">Отладка</button>
+          <button type="button" data-log="transactions" aria-pressed="false">Заявки</button>
+        </div>
+        <button type="button" class="btn" id="refreshLog">Обновить</button>
+      </div>
+      <p id="logMeta" class="log-meta" role="status"></p>
+      <pre id="logOutput" class="log-output" tabindex="0" aria-label="Содержимое журнала"></pre>
+    </div>
+  </section>
+  <section id="aboutView" class="hidden" aria-label="О программе">
+    <article class="card about-guide">
+      <!-- ABOUT_GUIDE -->
+    </article>
+  </section>
+</div></main></div>
+<div id="chartTooltip" class="chart-tooltip hidden" role="tooltip"></div>
+<script nonce="__NONCE__">
+'use strict';
+const $=id=>document.getElementById(id);
+const fragment=new URLSearchParams(location.hash.slice(1));
+if(fragment.get('token')){sessionStorage.setItem('algobond.editor.token',fragment.get('token'));history.replaceState(null,'',location.pathname);}
+const token=sessionStorage.getItem('algobond.editor.token')||'';
+const S={profiles:[],mode:'monitoring',selection:'one',views:new Map(),colors:new Map(),picks:{monitoring:{name:'',search:''},trading:{name:'',search:''},mixed:{name:'',search:''}},view:null};
+const labels={sqlite3:'SQLite · algobond.db',postgresql:'PostgreSQL',clickhouse:'ClickHouse'};
+const moneyKeys=new Set(['equity','balance','profit','estimate','price_open','price_current','lotvalue','price','accruedint','outcome','income','free_margin','margin','assets','liabilities','changes_abs','profit_perday','profit_perday0']);
+const fieldLabels={quantity_unit:'Единицы объёма',checked_at:'Сверка журнала (UTC)',price_unit:'Единицы цены',orderId:'Номер заявки',securityCode:'Инструмент',board:'Доска',side:'Направление',quantity:'Заявлено',filled_quantity:'Исполнено',remaining_quantity:'Остаток',status:'Статус',created_at:'Создана (UTC)',expires_at:'Отмена после (UTC)',managed:'Управление',date_record:'Снимок',symbol:'Инструмент',ticket:'Позиция',type:'Тип',secname:'Название',shortname:'Краткое название',volume:'Количество',price_open:'Цена входа',price_current:'Текущая цена',profit:'Результат',estimate:'Оценка в базе',changes:'Изменение, %',changes_abs:'Изменение',boardid:'Доска',faceunit:'Валюта номинала',date_opened:'Открытие',matdate:'Погашение',nextcoupon:'Следующий купон',count:'Количество',lotvalue:'Номинал',price:'Цена',couponpercent:'Купон, %',accruedint:'НКД',outcome:'Вложения',income:'Плановые поступления',leftdays:'Дней до погашения',profit_perday:'Доход в день',profit_perday0:'Доход в день, база',equity:'Стоимость счёта',balance:'Баланс',name:'Название счёта',client_id:'ID клиента',login:'Логин',currency:'Валюта',company:'Компания',server:'Сервер',type_account:'Тип инструментов',free_margin:'Свободная маржа',margin:'Маржа',assets:'Активы',liabilities:'Обязательства'};
+const defaults={orders:['securityCode','orderId','side','quantity','quantity_unit','filled_quantity','remaining_quantity','price','price_unit','status','created_at','expires_at','checked_at','managed'],positions:['symbol','volume','price_open','price_current','profit','estimate','changes'],planning:['symbol','matdate','nextcoupon','count','outcome','income','couponpercent','leftdays'],account_info:['date_record','equity','balance','profit','free_margin','margin','currency','name','login'],history:['date_record','equity','balance','profit','changes','changes_abs']};
+function n(v){if(v===null||v===undefined||v==='')return null;const x=Number(v);return Number.isFinite(x)?x:null;}
+function num(v,d=2){const x=n(v);return x===null?'—':new Intl.NumberFormat('ru-RU',{maximumFractionDigits:d}).format(x);}
+function currency(){return S.view?.data?.account?.currency||'';}
+function money(v,unit=currency()){return n(v)===null?'—':num(v)+' '+unit;}
+function dateLabel(value){if(!value)return '—';const m=String(value).match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/);return m?`${m[3]}.${m[2]}.${m[1]}${m[4]}`:String(value);}
+function node(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
+function alertBox(id,message,kind='error'){const e=$(id);e.textContent=message||'';e.className='alert '+kind+(message?'':' hidden');}
+function isCash(row){return !row.symbol||String(row.symbol)==='0';}
+function paintIfCurrent(view){if(S.view===view)paintView();}
+function scopeLabel(mode){return {monitoring:'Мониторинг',trading:'Торговля',mixed:'Смешанный'}[mode]||mode;}
+function scopeProfiles(mode){return S.profiles.filter(p=>mode==='mixed'||p.mode===mode);}
+function eligibleProfiles(mode){return scopeProfiles(mode).filter(p=>p.has_database&&!p.error);}
+function profileChoice(p,mode=S.mode){return mode==='mixed'?p.mode+'/'+p.name:p.name;}
+function newView(mode,name,kind='one'){return {kind,mode,name,scope:mode,catalog:null,data:null,account:'',history:false,historyDay:'',table:'positions',sort:null,asc:true,page:0,tableSearch:'',busy:false,task:0,error:'',collapsed:false,accountFilter:null,accountSearch:'',progress:''};}
+function activateProfile(name){
+  S.picks[S.mode].name=name;
+  const profile=scopeProfiles(S.mode).find(p=>profileChoice(p)===name);
+  const all=S.selection==='all',mode=all?S.mode:profile?.mode||S.mode,file=all?'*':profile?.name||'';
+  const key=JSON.stringify(all?['all',S.mode]:[mode,file]);
+  if(!S.views.has(key))S.views.set(key,newView(mode,file,all?'all':'one'));
+  S.view=S.views.get(key);
+  paintView();
+}
+function paintView(){
+  hideChartTooltip();
+  const view=S.view,catalog=view?.catalog;
+  const all=view?.kind==='all',collapsed=!!view?.collapsed;
+  $('monitorLayout').classList.toggle('connection-collapsed',collapsed);
+  $('connectionPanel').classList.toggle('hidden',collapsed);
+  $('connectionToggle').classList.toggle('hidden',!collapsed);
+  $('connectionToggle').textContent='⚙ Подключение';$('connectionToggle').title=scopeLabel(S.mode)+' · '+(all?'все конфигурации':view?.name||'выбор профиля');
+  $('connectionToggle').setAttribute('aria-expanded',String(!collapsed));
+  $('collapseConnection').disabled=!view?.data;
+  $('compactProgress').textContent=collapsed&&view?.busy?view.progress||'Чтение базы…':'';
+  $('connectionProgress').textContent=view?.busy?view.progress||'Чтение базы…':'';
+  $('profileFields').classList.toggle('hidden',all);$('accountPicker').classList.toggle('hidden',all);
+  $('accountFilters').classList.toggle('hidden',!all);$('accountSummary').classList.toggle('hidden',!all);
+  alertBox('globalError',view?.error||'');
+  alertBox('catalogMessage',catalog?.message||'','info');
+  $('account').replaceChildren(new Option(catalog?(catalog.accounts.length?'Выберите счёт':'Нет снимков с этим login'):'Сначала подключитесь',''));
+  if(catalog)for(const a of catalog.accounts)$('account').append(new Option(`${a.name||a.login} · ${a.login} · ${a.currency} · ${a.server}`,a.id));
+  $('account').value=view?.account||'';
+  $('tableSearch').value=view?.tableSearch||'';
+  $('emptyTitle').textContent=view?.busy?'Чтение базы…':catalog?(catalog.accounts.length?'Выберите счёт':'Нет снимков с указанным login'):'Портфель из вашей базы';
+  $('emptyText').textContent=catalog?(catalog.accounts.length?'Подключение установлено. Выберите счёт из списка слева.':'Проверьте client.login выбранной конфигурации. Счета с другими логинами не отображаются.'):'Подключитесь к выбранному профилю для чтения базы.';
+  if(all){$('emptyTitle').textContent=view.busy?'Загрузка всех счетов…':catalog?'Нет загруженных счетов':'Обзор выбранных конфигураций';$('emptyText').textContent=view.busy?view.progress:'Подключите все конфигурации выбранных папок. Каждый файл ограничен своим login; состояние загрузки и ошибки показаны выше.';}
+  $('portfolio').classList.add('hidden');$('empty').classList.remove('hidden');
+  if(view?.data)renderPortfolio();
+  for(const [id,active]of [['latestView',!view?.history],['historyView',!!view?.history]]){$(id).classList.toggle('active',active);$(id).setAttribute('aria-pressed',String(active));}
+  $('dayPicker').classList.toggle('hidden',!view?.history);
+  $('historyDay').value=view?.historyDay||'';
+  document.querySelectorAll('[data-table]').forEach(b=>{const active=b.dataset.table===view?.table;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
+  const busy=!!view?.busy;
+  $('account').disabled=busy||!catalog?.accounts.length;
+  $('snapshotDate').disabled=busy||!view?.history;
+  for(const id of ['latestView','historyView','findDay','historyDay'])$(id).disabled=busy;
+  $('refresh').disabled=busy||!view?.data;
+  $('connect').textContent=busy?'Чтение базы…':all?(view?.data?'Обновить все подключения':'Подключить все конфигурации'):catalog?'Переподключиться к базе':'Подключиться к базе';
+  profileHint();
+}
+async function runView(view,operation){
+  if(!view?.name||view.busy)return;
+  const ticket=++view.task;view.busy=true;view.error='';paintIfCurrent(view);
+  try{await operation(ticket);}catch(e){if(view.task===ticket)view.error=e.message;}
+  finally{if(view.task===ticket)view.busy=false;paintIfCurrent(view);}
+}
+async function fetchApi(url,payload){const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),46000);try{const response=await fetch(url,{method:payload?'POST':'GET',headers:{'X-Editor-Token':token,...(payload?{'Content-Type':'application/json'}:{})},body:payload?JSON.stringify(payload):undefined,signal:ctrl.signal});const data=await response.json();if(!response.ok)throw new Error(data.error||'Ошибка запроса');return data;}catch(e){if(e.name==='AbortError')throw new Error('Превышено время ожидания базы. Проверьте подключение.');throw e;}finally{clearTimeout(timer);}}
+const monitorJobs=[];let monitorActive=0;
+function pumpMonitorJobs(){while(monitorActive<2&&monitorJobs.length){const job=monitorJobs.shift();monitorActive++;fetchApi(job.url,job.payload).then(job.resolve,job.reject).finally(()=>{monitorActive--;pumpMonitorJobs();});}}
+function api(url,payload){if(url!=='/api/monitor')return fetchApi(url,payload);return new Promise((resolve,reject)=>{monitorJobs.push({url,payload,resolve,reject});pumpMonitorJobs();});}
+const workspaceViews={
+  '/':['homeView','navHome','Рабочее пространство'],
+  '/monitor':['monitorView','navMonitor','Мониторинг портфеля'],
+  '/logs':['logsView','navLogs','Логи'],
+  '/about':['aboutView','navAbout','О программе'],
+};
+function navigate(){
+  const current=workspaceViews[location.pathname]||workspaceViews['/'];
+  for(const view of Object.values(workspaceViews)){
+    const [section, nav]=view, active=view===current;
+    $(section).classList.toggle('hidden',!active);
+    $(nav).classList.toggle('active',active);
+  }
+  $('pageTitle').textContent=current[2];
+}
+let logKind='errors', logRequest=0;
+async function showLog(kind){
+  logKind=kind;
+  const request=++logRequest;
+  for(const button of document.querySelectorAll('[data-log]')){
+    const selected=button.dataset.log===kind;
+    button.classList.toggle('active',selected);
+    button.setAttribute('aria-pressed',String(selected));
+  }
+  const output=$('logOutput'), meta=$('logMeta');
+  output.textContent='';
+  meta.textContent='Читаем журнал…';
+  try{
+    const log=await api('/api/logs?kind='+encodeURIComponent(kind));
+    if(request!==logRequest)return;
+    meta.textContent=log.path+(log.truncated?' · последние записи':'');
+    output.textContent=log.text||(log.exists?'В журнале пока нет записей.':'Файл появится после первой записи.');
+    output.scrollTop=output.scrollHeight;
+  }catch(error){
+    if(request===logRequest)meta.textContent=error.message;
+  }
+}
+for(const button of document.querySelectorAll('[data-log]'))button.onclick=()=>showLog(button.dataset.log);
+$('refreshLog').onclick=()=>showLog(logKind);
+function fillProfiles(){
+  const pick=S.picks[S.mode],q=pick.search.toLocaleLowerCase('ru');
+  const list=scopeProfiles(S.mode).filter(p=>!q||[p.name,p.label,p.login,p.broker].some(x=>String(x||'').toLocaleLowerCase('ru').includes(q)));
+  $('profileSearch').value=pick.search;
+  $('profile').replaceChildren(new Option(list.length?'Выберите конфигурацию':'Файлы не найдены',''));
+  for(const p of list){const o=new Option(`${S.mode==='mixed'?scopeLabel(p.mode)+' · ':''}${p.label} · ${p.name}${p.has_database?'':' · без БД'}`,profileChoice(p));o.disabled=!p.has_database||p.error;$('profile').append(o);}
+  const selected=list.find(p=>profileChoice(p)===pick.name&&p.has_database&&!p.error)||list.find(p=>p.has_database&&!p.error);
+  $('profile').value=selected?profileChoice(selected):'';
+  activateProfile($('profile').value);
+}
+function changeMode(mode){
+  if(!['monitoring','trading','mixed'].includes(mode)||mode===S.mode)return;
+  S.mode=mode;
+  document.querySelectorAll('[data-mode]').forEach(b=>{const active=b.dataset.mode===mode;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
+  fillProfiles();
+}
+function setSelection(kind){if(!['one','all'].includes(kind))return;S.selection=kind;document.querySelectorAll('[data-selection]').forEach(b=>{const active=b.dataset.selection===kind;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});fillProfiles();}
+function profileHint(){const view=S.view;if(view?.kind==='all'){const total=scopeProfiles(view.scope).length,count=eligibleProfiles(view.scope).length;$('profileHint').textContent=`Конфигураций с базой: ${count} из ${total}. Для каждого файла используется его login. Поиск по имени этот набор не ограничивает.`;$('connect').disabled=view.busy||!count;return;}const p=S.profiles.find(p=>p.mode===view?.mode&&p.name===view?.name);$('profileHint').textContent=p?`${p.broker} · ${labels[p.database_type]||p.database_type} · ${p.active?'активен':'неактивен'}`:'Для мониторинга нужна секция [database].';$('connect').disabled=!!view?.busy||!p?.has_database||!!p?.error;}
+function baseRequest(action,view){return {action,mode:view.mode,name:view.name};}
+async function readSnapshot(view,date,before,ticket){
+  const account=view.account;
+  const data=await api('/api/monitor',{...baseRequest('snapshot',view),account,date,before});
+  if(view.task===ticket&&view.account===account){view.data=data;view.page=0;view.historyDay=String(data.selected_date||'').slice(0,10);if(data.selected_date)view.collapsed=true;}
+}
+async function connect(){
+  const view=S.view;if(!view?.name||view.busy)return;
+  if(view.kind==='all'){view.history=false;return runView(view,ticket=>readAllPortfolios(view,'','',ticket));}
+  view.catalog=null;view.data=null;view.account='';view.history=false;view.historyDay='';
+  return runView(view,async ticket=>{
+    const catalog=await api('/api/monitor',baseRequest('catalog',view));
+    if(view.task!==ticket)return;
+    view.catalog=catalog;view.account=catalog.default_account||'';
+    if(view.account)await readSnapshot(view,'','',ticket);
+  });
+}
+async function loadSnapshot(date='',before='',view=S.view){
+  if(view?.kind==='all')return runView(view,ticket=>readAllPortfolios(view,date,before,ticket));
+  if(!view?.account){if(view){view.data=null;paintIfCurrent(view);}return;}
+  return runView(view,ticket=>readSnapshot(view,date,before,ticket));
+}
+async function mapLimit(items,limit,operation){
+  let next=0;const results=new Array(items.length);
+  await Promise.all(Array.from({length:Math.min(limit,items.length)},async()=>{while(next<items.length){const index=next++;results[index]=await operation(items[index],index);}}));
+  return results;
+}
+function accountLabel(account){return `${account.name||account.login} · ${account.login} · ${account.currency||'валюта не указана'}`;}
+function accountColor(id){
+  if(!S.colors.has(id)){let hash=2166136261;for(const char of String(id))hash=Math.imul(hash^char.charCodeAt(0),16777619)>>>0;let hue=(hash%36000)/100;const saturation=56+(hash>>>12)%15,lightness=36+(hash>>>20)%10;let color=`hsl(${hue.toFixed(2)} ${saturation}% ${lightness}%)`;while([...S.colors.values()].includes(color)){hue=(hue+137.508)%360;color=`hsl(${hue.toFixed(2)} ${saturation}% ${lightness}%)`;}S.colors.set(id,color);}
+  return S.colors.get(id);
+}
+function stampNumber(value){const result=Date.parse(String(value||'').replace(' ','T'));return Number.isFinite(result)?result:-Infinity;}
+function sourceLabel(profile){return scopeLabel(profile.mode)+' / '+profile.name;}
+async function readAllPortfolios(view,date,before,ticket){
+  const profiles=eligibleProfiles(view.scope),issues=[],empty=[],groups=new Map();let done=0,found=0;
+  if(!profiles.length)throw new Error('В выбранных папках нет корректных конфигураций с базой данных.');
+  view.progress=`Каталоги: 0 из ${profiles.length}`;paintIfCurrent(view);
+  const catalogs=await mapLimit(profiles,2,async profile=>{
+    try{const catalog=await api('/api/monitor',{action:'catalog',mode:profile.mode,name:profile.name});if(!Array.isArray(catalog.accounts))throw new Error('Некорректный каталог счетов');if(!catalog.accounts.length)empty.push(sourceLabel(profile)+': нет снимков с login этой конфигурации.');return {profile,catalog};}
+    catch(error){issues.push(sourceLabel(profile)+': '+error.message);return null;}
+    finally{view.progress=`Каталоги: ${++done} из ${profiles.length}`;paintIfCurrent(view);}
+  });
+  for(const result of catalogs){if(!result)continue;for(const account of result.catalog.accounts){found++;if(!groups.has(account.id))groups.set(account.id,{id:account.id,account,sources:[]});groups.get(account.id).sources.push({profile:result.profile,account,catalog:result.catalog});}}
+  done=0;view.progress=`Состояния счетов: 0 из ${groups.size}`;paintIfCurrent(view);
+  const loaded=await mapLimit([...groups.values()],2,async group=>{
+    const sources=group.sources.slice().sort((a,b)=>stampNumber(b.account.latest)-stampNumber(a.account.latest)||sourceLabel(a.profile).localeCompare(sourceLabel(b.profile)));
+    try{
+      for(const source of sources){
+        try{
+          const payload={action:'snapshot',mode:source.profile.mode,name:source.profile.name,account:group.id};
+          if(before)payload.before=before;else if(date)payload.at=date;
+          const data=await api('/api/monitor',payload);
+          if(data.account?.id!==group.id||!data.selected_date)throw new Error('Нет доступного снимка этого счета');
+          const upper=before?before+' 23:59:59':date;if(upper&&stampNumber(data.selected_date)>stampNumber(upper))throw new Error('Источник вернул более поздний снимок. Обновите algobond_monitor.py вместе с dashboard.html.');
+          return {id:group.id,account:data.account,data,source:source.profile,sources:group.sources.map(s=>s.profile)};
+        }catch(error){issues.push(sourceLabel(source.profile)+' · '+group.account.login+': '+error.message);}
+      }
+      return null;
+    }finally{view.progress=`Состояния счетов: ${++done} из ${groups.size}`;paintIfCurrent(view);}
+  });
+  if(view.task!==ticket)return;
+  const portfolios=loaded.filter(Boolean).sort((a,b)=>accountLabel(a.account).localeCompare(accountLabel(b.account),'ru')||a.id.localeCompare(b.id));
+  const skipped=scopeProfiles(view.scope).length-profiles.length;
+  const warnings=[...issues,...empty];
+  if(found>groups.size)warnings.unshift(`Точные дубликаты счетов объединены: ${found-groups.size}. Каждый счет учитывается один раз; приоритет у источника с более свежим снимком.`);
+  if(skipped)warnings.push(`Пропущено файлов без доступной базы или с ошибкой INI: ${skipped}.`);
+  view.catalog={accounts:portfolios.map(p=>p.account),database_type:'multiple',message:`Загружено счетов: ${portfolios.length} из ${groups.size}; конфигураций с базой: ${profiles.length}; ошибок чтения: ${issues.length}.`};
+  if(!portfolios.length){view.data=null;view.catalog.message+='\n'+warnings.join('\n');view.progress='';view.collapsed=false;return;}
+  const dates=[...new Set(portfolios.flatMap(p=>p.data.dates||[]))].sort().reverse();
+  const latestDate=portfolios.map(p=>p.data.latest_date).filter(Boolean).sort().at(-1);
+  const selectedDate=before?before+' 23:59:59':date||portfolios.map(p=>p.data.selected_date).sort().at(-1);
+  if(!dates.includes(selectedDate)){dates.push(selectedDate);dates.sort().reverse();}
+  view.data={kind:'all',portfolios,dates,selected_date:selectedDate,latest_date:latestDate,warnings,counts:{profiles:profiles.length,found:groups.size,loaded:portfolios.length,errors:issues.length},account:{currency:''}};
+  view.historyDay=before||String(selectedDate).slice(0,10);view.page=0;view.progress='';view.collapsed=true;
+}
+function selectedPortfolios(view=S.view){return (view.data?.portfolios||[]).filter(p=>view.accountFilter===null||view.accountFilter.has(p.id));}
+function portfolioMetrics(portfolio){
+  const info=portfolio.data.account_info[0]||{},positions=portfolio.data.positions.filter(r=>!isCash(r)),profits=positions.map(r=>n(r.profit)).filter(v=>v!==null);
+  const positionsKnown=!!portfolio.data.source_dates?.SymbolsInfo||portfolio.data.positions.length>0;
+  return {equity:n(info.equity),balance:n(info.balance),profit:profits.length?profits.reduce((a,b)=>a+b,0):positions.length||!positionsKnown?null:0,count:positions.length};
+}
+function currencyTotals(portfolios){
+  const groups=new Map();
+  for(const p of portfolios){const unit=p.account.currency||'Валюта не указана';if(!groups.has(unit))groups.set(unit,{currency:unit,accounts:0,equity:0,balance:0,profit:0,equityKnown:0,balanceKnown:0,profitKnown:0,count:0});const total=groups.get(unit),values=portfolioMetrics(p);total.accounts++;total.count+=values.count;for(const key of ['equity','balance','profit'])if(values[key]!==null){total[key]+=values[key];total[key+'Known']++;}}
+  return [...groups.values()].sort((a,b)=>a.currency.localeCompare(b.currency));
+}
+function aggregateRows(portfolios,table){
+  const rows=[];for(const p of portfolios)for(const row of p.data[table]||[]){if(rows.length>=50000)return rows;rows.push({...row,_account_id:p.id,_account_name:accountLabel(p.account),_currency:p.account.currency||'',_color:accountColor(p.id)});}return rows;
+}
+function setAccountFilter(id,checked){
+  const view=S.view;if(!view?.data?.portfolios)return;
+  if(view.accountFilter===null)view.accountFilter=new Set(view.data.portfolios.map(p=>p.id));
+  if(checked)view.accountFilter.add(id);else view.accountFilter.delete(id);
+  if(view.accountFilter.size===view.data.portfolios.length)view.accountFilter=null;
+  view.page=0;paintView();
+}
+function renderPortfolio(){if(S.view.kind==='all')return renderAggregatePortfolio();$('equityChart').classList.remove('multi-chart');$('maturityChart').classList.remove('multi-chart');$('equityLegend').replaceChildren();$('equityLabel').textContent='Стоимость счёта';$('balanceLabel').textContent='Баланс';const d=S.view.data;$('empty').classList.toggle('hidden',!!d.selected_date);$('portfolio').classList.toggle('hidden',!d.selected_date);if(!d.selected_date)return;$('accountName').textContent=d.account.name||'Портфель';$('accountMeta').textContent=`${d.account.login} · ${d.account.server} · Снимок ${dateLabel(d.selected_date)}`;$('databaseBadge').textContent=labels[S.view.catalog.database_type]||S.view.catalog.database_type;$('snapshotDate').replaceChildren(...d.dates.map(x=>new Option(dateLabel(x),x)));$('snapshotDate').value=d.selected_date;$('historyDay').value=String(d.selected_date).slice(0,10);$('snapshotDate').disabled=!S.view.history;
+const warnings=[...d.warnings];const dateOnly=String(d.latest_date).slice(0,10);const today=new Date();const localDate=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');if(dateOnly!==localDate)warnings.unshift(`Последний снимок в базе: ${dateLabel(d.latest_date)}. Эти данные не являются текущими котировками брокера.`);$('snapshotWarnings').replaceChildren(...warnings.map(t=>node('div','alert',t)));
+const account=d.account_info[0]||{};$('equity').textContent=money(account.equity);$('balance').textContent=money(account.balance);const positions=d.positions.filter(r=>!isCash(r));const profits=positions.map(r=>n(r.profit)).filter(v=>v!==null);const total=profits.reduce((a,b)=>a+b,0);$('positionProfit').textContent=profits.length?money(total):'—';$('positionProfit').className=total<0?'negative':'positive';$('positionCount').textContent=String(positions.length);renderEquity();renderMaturities();renderTable();$('sourceDates').textContent=Object.entries(d.source_dates).map(([t,v])=>`${t}: ${dateLabel(v)}`).join(' · ');}
+function svgNode(tag,attrs,text){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v]of Object.entries(attrs||{}))e.setAttribute(k,String(v));if(text!==undefined)e.textContent=text;return e;}
+function coloredDot(color){const dot=node('span','account-dot');dot.style.backgroundColor=color;return dot;}
+function renderAccountFilters(){
+  const view=S.view,all=view.data.portfolios,selected=selectedPortfolios(view);
+  $('accountFilterCount').textContent=`Счета: ${selected.length} из ${all.length}`;
+  $('accountFilterSearch').value=view.accountSearch||'';const query=(view.accountSearch||'').toLocaleLowerCase('ru');
+  $('accountFilterItems').replaceChildren(...all.filter(p=>!query||accountLabel(p.account).toLocaleLowerCase('ru').includes(query)).map(p=>{const label=node('label','filter-chip'),color=accountColor(p.id),box=node('input');box.type='checkbox';box.checked=view.accountFilter===null||view.accountFilter.has(p.id);box.setAttribute('aria-label',accountLabel(p.account));box.onchange=()=>setAccountFilter(p.id,box.checked);label.style.borderLeftColor=color;label.title=p.sources.map(sourceLabel).join('\n');label.append(box,coloredDot(color),node('span','',accountLabel(p.account)));return label;}));
+}
+function renderAccountSummary(portfolios){
+  const table=node('table'),head=node('thead'),row=node('tr');
+  for(const label of ['Счёт','Снимок','Стоимость','Баланс','Результат позиций','Позиций','Источник'])row.append(node('th','',label));head.append(row);table.append(head);
+  const body=node('tbody');for(const p of portfolios){const tr=node('tr'),values=portfolioMetrics(p),title=node('td','account-title');title.append(coloredDot(accountColor(p.id)),node('strong','',p.account.name||p.account.login),node('small','',`${p.account.login} · ${p.account.server} · ${p.account.currency}`));tr.append(title,node('td','',dateLabel(p.data.selected_date)));for(const key of ['equity','balance','profit'])tr.append(node('td','num'+(key==='profit'?(values[key]<0?' negative':' positive'):''),money(values[key],p.account.currency||'')));tr.append(node('td','num',String(values.count)),node('td','',sourceLabel(p.source)));body.append(tr);}if(!portfolios.length){const tr=node('tr'),td=node('td','row-empty','Счета не выбраны');td.colSpan=7;tr.append(td);body.append(tr);}table.append(body);$('accountSummary').replaceChildren(table);
+}
+function renderWarnings(messages){
+  const unique=[...new Set(messages)],elements=unique.slice(0,3).map(text=>node('div','alert',text));
+  if(unique.length>3){const details=node('details','alert'),summary=node('summary','',`Ещё замечаний: ${unique.length-3}`);details.append(summary,...unique.slice(3).map(text=>node('div','small',text)));elements.push(details);}
+  $('snapshotWarnings').replaceChildren(...elements);
+}
+function renderAggregatePortfolio(){
+  const view=S.view,d=view.data,portfolios=selectedPortfolios(view),totals=currencyTotals(portfolios);
+  $('empty').classList.add('hidden');$('portfolio').classList.remove('hidden');
+  $('accountName').textContent='Обзор всех счетов';$('accountMeta').textContent=`${scopeLabel(view.scope)} · выбрано счетов ${portfolios.length} из ${d.portfolios.length} · на момент ${dateLabel(d.selected_date)}`;
+  $('databaseBadge').textContent=`${d.counts.profiles} конфигураций`;
+  $('equityLabel').textContent='Общая стоимость';$('balanceLabel').textContent='Общий баланс';
+  $('snapshotDate').replaceChildren(...d.dates.map(value=>new Option(dateLabel(value),value)));$('snapshotDate').value=d.selected_date;
+  renderAccountFilters();renderAccountSummary(portfolios);
+  const warnings=[...d.warnings];if(d.counts.errors)warnings.unshift(`Данные частичные: ошибок чтения ${d.counts.errors}. Итоги относятся к успешно загруженным и выбранным счетам.`);
+  if(!portfolios.length)warnings.unshift('Не выбрано ни одного счета. Включите счета в фильтре выше.');
+  if(new Set(portfolios.map(p=>p.data.selected_date)).size>1)warnings.push('Даты снимков счетов различаются. Фактическое время каждого состояния показано в таблице счетов.');
+  const now=new Date(),today=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
+  for(const p of portfolios){for(const warning of p.data.warnings||[])warnings.push(accountLabel(p.account)+': '+warning);if(String(p.data.latest_date).slice(0,10)!==today)warnings.push(accountLabel(p.account)+': последний снимок '+dateLabel(p.data.latest_date)+'.');}
+  for(const t of totals)for(const key of ['equity','balance','profit'])if(t[key+'Known']<t.accounts)warnings.push(`${t.currency}: показатель ${key} доступен только для ${t[key+'Known']} из ${t.accounts} счетов; его итог неполный.`);
+  for(const [id,key]of [['equity','equity'],['balance','balance'],['positionProfit','profit']]){const host=$(id);host.className='';host.replaceChildren(...(totals.length?totals.map(t=>node('span','total-line'+(key==='profit'?(t.profit<0?' negative':' positive'):''),t[key+'Known']?money(t[key],t.currency):'— '+t.currency)):[node('span','','—')]));}
+  $('positionCount').textContent=String(totals.reduce((sum,t)=>sum+t.count,0));
+  view.displayData={orders:aggregateRows(portfolios,'orders'),positions:aggregateRows(portfolios,'positions'),planning:aggregateRows(portfolios,'planning'),account_info:aggregateRows(portfolios,'account_info'),history:aggregateRows(portfolios,'history')};
+  for(const table of Object.keys(view.displayData)){const total=portfolios.reduce((sum,p)=>sum+(p.data[table]?.length||0),0);if(total>50000)warnings.push(`${table}: в общей таблице показаны первые 50 000 из ${total} строк. Сузьте фильтр счетов. Итоги карточек рассчитаны по всем загруженным строкам.`);}
+  renderWarnings(warnings);
+  renderGroupedEquity(portfolios);renderGroupedMaturities(portfolios);renderTable();
+  $('sourceDates').textContent=`Общий результат рассчитан по ${portfolios.length} выбранным счетам. Валюты суммируются раздельно, без конвертации. Фактические даты указаны по каждому счету.`;
+}
+function chartBase(id){const host=$(id);host.replaceChildren();const svg=svgNode('svg',{viewBox:'0 0 460 170',role:'img'});host.append(svg);return svg;}
+let chartTooltipCleanup=null;
+function hideChartTooltip(){
+  $('chartTooltip').classList.add('hidden');
+  const cleanup=chartTooltipCleanup;chartTooltipCleanup=null;if(cleanup)cleanup();
+}
+function showChartTooltip(target,event,period,amount,cleanup=null){
+  if(chartTooltipCleanup&&chartTooltipCleanup!==cleanup)chartTooltipCleanup();
+  chartTooltipCleanup=cleanup;
+  const tip=$('chartTooltip');tip.replaceChildren(node('strong','',period));
+  if(Array.isArray(amount)){for(const item of amount.slice(0,12)){const row=node('span','tooltip-row'),label=node('span','tooltip-label');if(item.color)label.append(coloredDot(item.color));label.append(node('span','',item.label));row.append(label,node('b','',item.amount));tip.append(row);}if(amount.length>12)tip.append(node('span','tooltip-more',`Ещё счетов: ${amount.length-12}. Используйте фильтр для подробного просмотра.`));}else tip.append(node('span','',amount));
+  tip.classList.remove('hidden');
+  const box=target.getBoundingClientRect(),size=tip.getBoundingClientRect();
+  const x=Number.isFinite(event.clientX)?event.clientX:box.left+box.width/2;
+  const y=Number.isFinite(event.clientY)?event.clientY:box.top;
+  tip.style.left=Math.max(12,Math.min(x+14,window.innerWidth-size.width-12))+'px';
+  tip.style.top=Math.max(12,Math.min(y-size.height-12,window.innerHeight-size.height-12))+'px';
+}
+function bindChartTooltip(target,period,amount){
+  target.setAttribute('tabindex','0');target.setAttribute('class','maturity-bar');
+  target.setAttribute('role','img');target.setAttribute('aria-label',`${period}: ${Array.isArray(amount)?amount.map(item=>item.label+': '+item.amount).join('; '):amount}`);
+  target.setAttribute('aria-describedby','chartTooltip');
+  const show=event=>showChartTooltip(target,event,period,amount);
+  for(const type of ['pointerenter','pointermove','pointerdown','focus'])target.addEventListener(type,show);
+  for(const type of ['pointerleave','blur'])target.addEventListener(type,hideChartTooltip);
+}
+function nearestChartPoint(points,x){let best=-1,distance=Infinity;for(let i=0;i<points.length;i++){const d=Math.abs(points[i][0]-x);if(d<distance){best=i;distance=d;}}return best;}
+function bindEquityTooltip(svg,rows,points){
+  const unit=currency();
+  const guide=svgNode('line',{y1:16,y2:138,stroke:'#8daf9b','stroke-dasharray':'3 3','pointer-events':'none',visibility:'hidden','data-equity-guide':'true'});
+  const marker=svgNode('circle',{r:4.5,fill:'#1d324b',stroke:'#fff','stroke-width':2,'pointer-events':'none',visibility:'hidden','data-equity-marker':'true'});
+  const hit=svgNode('rect',{x:54,y:16,width:392,height:123,fill:'transparent','pointer-events':'all',tabindex:0,role:'img','aria-label':'История стоимости: наведите курсор или используйте стрелки для выбора снимка','aria-describedby':'chartTooltip',class:'equity-hit'});
+  svg.append(guide,marker,hit);
+  let selected=rows.length-1;
+  const frame=()=>{
+    const box=svg.getBoundingClientRect(),scale=Math.min(box.width/460,box.height/170)||1;
+    return {scale,left:box.left+(box.width-460*scale)/2,top:box.top+(box.height-170*scale)/2};
+  };
+  const clear=()=>{guide.setAttribute('visibility','hidden');marker.setAttribute('visibility','hidden');};
+  const show=(event={},index=null)=>{
+    const f=frame();
+    selected=index===null?nearestChartPoint(points,(event.clientX-f.left)/f.scale):index;
+    if(selected<0)return;
+    const [x,y]=points[selected],row=rows[selected];
+    guide.setAttribute('x1',x);guide.setAttribute('x2',x);guide.setAttribute('visibility','visible');
+    marker.setAttribute('cx',x);marker.setAttribute('cy',y);marker.setAttribute('visibility','visible');
+    const period=dateLabel(row.date_record),amount=money(row.equity,unit);
+    hit.setAttribute('aria-label',`${period}: ${amount}`);
+    const position=Number.isFinite(event.clientX)?event:{clientX:f.left+x*f.scale,clientY:f.top+y*f.scale};
+    showChartTooltip(hit,position,period,amount,clear);
+  };
+  for(const type of ['pointerenter','pointermove','pointerdown'])hit.addEventListener(type,event=>show(event));
+  hit.addEventListener('focus',event=>show(event,selected));
+  for(const type of ['pointerleave','blur'])hit.addEventListener(type,hideChartTooltip);
+  hit.addEventListener('keydown',event=>{
+    if(event.key==='Escape'){hideChartTooltip();return;}
+    const keys=['ArrowLeft','ArrowRight','Home','End'];if(!keys.includes(event.key))return;
+    event.preventDefault();
+    const index=event.key==='Home'?0:event.key==='End'?rows.length-1:Math.max(0,Math.min(rows.length-1,selected+(event.key==='ArrowLeft'?-1:1)));
+    show({},index);
+  });
+}
+function renderEquity(){
+  const rows=S.view.data.history.filter(r=>n(r.equity)!==null&&Number.isFinite(Date.parse(String(r.date_record).replace(' ','T'))));
+  if(!rows.length){$('equityChart').textContent='Нет данных equity';return;}
+  const svg=chartBase('equityChart');svg.setAttribute('aria-label','Изменение стоимости счета по снимкам');
+  let min=Math.min(...rows.map(r=>Number(r.equity))),max=Math.max(...rows.map(r=>Number(r.equity)));
+  const pad=Math.max((max-min)*.15,Math.abs(max)*.001,1);min-=pad;max+=pad;
+  const times=rows.map(r=>Date.parse(String(r.date_record).replace(' ','T'))),tmin=Math.min(...times),tmax=Math.max(...times);
+  const points=rows.map((r,i)=>[54+(tmax>tmin?(times[i]-tmin)/(tmax-tmin):.5)*392,137-(Number(r.equity)-min)/(max-min)*115]);
+  for(let i=0;i<3;i++){const y=22+i*57;svg.append(svgNode('line',{x1:54,x2:446,y1:y,y2:y,stroke:'#e8eef3'}));svg.append(svgNode('text',{x:46,y:y+3,'text-anchor':'end','font-size':9,fill:'#8b99a6'},num(max-(max-min)*i/2,0)));}
+  svg.append(svgNode('polygon',{points:[[points[0][0],138],...points,[points.at(-1)[0],138]].map(p=>p.join(',')).join(' '),fill:'#eaf6ef'}));
+  svg.append(svgNode('polyline',{points:points.map(p=>p.join(',')).join(' '),fill:'none',stroke:'#52aa7e','stroke-width':2.2}));
+  if(points.length<=150)for(const [x,y]of points)svg.append(svgNode('circle',{cx:x,cy:y,r:2.8,fill:'#52aa7e'}));
+  svg.append(svgNode('text',{x:54,y:162,'font-size':9,fill:'#8b99a6'},dateLabel(rows[0].date_record)));
+  if(rows.length>1)svg.append(svgNode('text',{x:446,y:162,'text-anchor':'end','font-size':9,fill:'#8b99a6'},dateLabel(rows.at(-1).date_record)));
+  bindEquityTooltip(svg,rows,points);
+}
+function maturityBuckets(rows,asof=''){const groups=new Map();for(const r of rows){if(isCash(r)||!/^\d{4}-\d{2}-\d{2}/.test(String(r.matdate)))continue;const day=String(r.matdate).slice(0,10),stamp=new Date(day+'T00:00:00Z');if(!Number.isFinite(stamp.getTime())||stamp.toISOString().slice(0,10)!==day)continue;if(asof&&day<asof)continue;const amount=n(r.income);if(amount===null||amount<=0)continue;const key=String(r.matdate).slice(0,7);groups.set(key,(groups.get(key)||0)+amount);}return [...groups].sort(([a],[b])=>a.localeCompare(b));}
+function renderMaturities(){const all=maturityBuckets(S.view.data.planning,String(S.view.data.selected_date).slice(0,10));if(!all.length){$('maturityChart').textContent='Нет плановых поступлений с датой погашения';$('maturityLegend').textContent='';return;}const buckets=all.slice(0,18);const svg=chartBase('maturityChart');svg.setAttribute('aria-label','Плановые поступления по месяцам погашения');const max=Math.max(...buckets.map(b=>b[1]));const w=392/buckets.length;for(let i=0;i<3;i++){const y=22+i*57;svg.append(svgNode('line',{x1:54,x2:446,y1:y,y2:y,stroke:'#e8eef3'}));svg.append(svgNode('text',{x:46,y:y+3,'text-anchor':'end','font-size':9,fill:'#8b99a6'},num(max*(1-i/2),0)));}buckets.forEach(([month,value],i)=>{const h=value/max*115;const bar=svgNode('rect',{x:54+i*w+Math.min(4,w*.1),y:137-h,width:w*.75,height:h,rx:Math.min(3,w*.1),fill:'#52aa7e'});const period=new Intl.DateTimeFormat('ru-RU',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(month+'-01T12:00:00Z'));bindChartTooltip(bar,period,money(value));svg.append(bar);if(i%Math.max(1,Math.ceil(buckets.length/6))===0)svg.append(svgNode('text',{x:54+i*w+w*.4,y:159,'text-anchor':'middle','font-size':8,fill:'#8b99a6'},month.slice(5)+'.'+month.slice(2,4)));});$('maturityLegend').textContent=all.length>18?`На графике первые 18 из ${all.length} месяцев. Все строки доступны в таблице.`:'Значения income из аналитики AlgoBond; фактические выплаты могут отличаться.';}
+function renderTable(){
+  if(!S.view.data)return;
+  const grouped=S.view.kind==='all',all=(grouped?S.view.displayData:S.view.data)[S.view.table]||[],q=$('tableSearch').value.toLocaleLowerCase('ru');
+  let rows=all.filter(r=>Object.values(r).some(v=>String(v??'').toLocaleLowerCase('ru').includes(q)));
+  rows=rows.slice().sort((a,b)=>{if(grouped&&a._account_id!==b._account_id)return a._account_name.localeCompare(b._account_name,'ru')||a._account_id.localeCompare(b._account_id);if(!S.view.sort)return 0;const x=a[S.view.sort],y=b[S.view.sort],result=n(x)!==null&&n(y)!==null?Number(x)-Number(y):String(x??'').localeCompare(String(y??''),'ru');return S.view.asc?result:-result;});
+  const present=new Set(all.flatMap(r=>Object.keys(r)).filter(k=>!k.startsWith('_'))),cols=[...(grouped?['_account_name']:[]),...defaults[S.view.table].filter(c=>present.has(c)),...present].filter((x,i,a)=>a.indexOf(x)===i);
+  const count=Math.ceil(rows.length/50);S.view.page=Math.min(S.view.page,Math.max(0,count-1));const head=node('tr');
+  for(const key of cols){const th=node('th',moneyKeys.has(key)?'num':''),button=node('button','',(key==='_account_name'?'Счёт':fieldLabels[key]||key)+(S.view.sort===key?(S.view.asc?' ↑':' ↓'):''));button.title=key;button.onclick=()=>{S.view.asc=S.view.sort===key?!S.view.asc:true;S.view.sort=key;renderTable();};th.append(button);head.append(th);}$('tableHead').replaceChildren(head);
+  const body=[];let previous=null;
+  for(const row of rows.slice(S.view.page*50,S.view.page*50+50)){
+    if(grouped&&row._account_id!==previous){const band=node('tr','account-band'),cell=node('td');cell.colSpan=Math.max(1,cols.length);cell.style.borderLeftColor=row._color;cell.append(coloredDot(row._color),node('span','',row._account_name));band.append(cell);body.push(band);previous=row._account_id;}
+    const tr=node('tr');for(const key of cols){const td=node('td',moneyKeys.has(key)?'num':'');if(key==='_account_name'){td.append(coloredDot(row._color),node('span','',row._account_name));}else if(key==='symbol'){const e=node('div','symbol');e.append(node('strong','',isCash(row)?'Денежные средства':row.symbol),node('span','',row.shortname||row.secname||''));td.append(e);}else if(['date_record','date_opened','matdate','nextcoupon','created_at','expires_at','checked_at'].includes(key))td.textContent=dateLabel(row[key]);else if(key==='side')td.textContent=({buy:'Покупка',sell:'Продажа'})[row[key]]||String(row[key]);else if(key==='status')td.textContent=({new:'Активна',partial:'Частично исполнена',submitting:'Отправляется',unknown:'Не подтверждена',pending_cancel:'Ожидает отмены'})[row[key]]||String(row[key]);else td.textContent=moneyKeys.has(key)||['volume','count','leftdays','couponpercent','changes','quantity','filled_quantity','remaining_quantity'].includes(key)?num(row[key]):String(row[key]??'—');if(['profit','changes','changes_abs'].includes(key)&&n(row[key])!==null)td.classList.add(Number(row[key])<0?'negative':'positive');tr.append(td);}body.push(tr);
+  }
+  if(!body.length){const tr=node('tr'),td=node('td','row-empty','Нет записей для выбранного снимка или фильтра');td.colSpan=Math.max(1,cols.length);tr.append(td);body.push(tr);}$('tableBody').replaceChildren(...body);
+  $('tableInfo').textContent=(S.view.table==='orders'?'Локальный журнал · единицы цены указаны в строке · время UTC · ':'')+`Записей: ${rows.length}${count?' · Страница '+(S.view.page+1)+' из '+count:''} · ${grouped?'Суммы в валюте каждого счета':'Валюта счёта: '+currency()}`;$('prevPage').disabled=S.view.page===0;$('nextPage').disabled=S.view.page>=count-1;
+}
+function byCurrency(portfolios){const groups=new Map();for(const p of portfolios){const unit=p.account.currency||'Валюта не указана';if(!groups.has(unit))groups.set(unit,[]);groups.get(unit).push(p);}return [...groups].sort(([a],[b])=>a.localeCompare(b));}
+function normalizedHistory(portfolio){const values=new Map(),cutoff=stampNumber(portfolio.data.selected_date);for(const row of portfolio.data.history||[]){const value=n(row.equity),time=stampNumber(row.date_record);if(value!==null&&Number.isFinite(time)&&time<=cutoff)values.set(time,{time,stamp:row.date_record,value});}return [...values.values()].sort((a,b)=>a.time-b.time);}
+function pointAt(points,time){let low=0,high=points.length;while(low<high){const mid=(low+high)>>1;if(points[mid].time<=time)low=mid+1;else high=mid;}return low?points[low-1]:null;}
+function closestTimeIndex(times,time){let low=0,high=times.length;while(low<high){const mid=(low+high)>>1;if(times[mid]<time)low=mid+1;else high=mid;}if(!low)return 0;if(low===times.length)return low-1;return time-times[low-1]<=times[low]-time?low-1:low;}
+function historySeries(portfolios,unit){
+  const series=portfolios.map(p=>({id:p.id,label:accountLabel(p.account),color:accountColor(p.id),points:normalizedHistory(p),total:false}));
+  if(series.length>1){const events=series.flatMap((s,index)=>s.points.map(p=>({...p,index}))).sort((a,b)=>a.time-b.time),last=new Array(series.length).fill(null),points=[];let sum=0,known=0;for(let i=0;i<events.length;){const time=events[i].time;let stamp='';while(i<events.length&&events[i].time===time){const event=events[i++];if(last[event.index]===null)known++;else sum-=last[event.index];last[event.index]=event.value;sum+=event.value;stamp=event.stamp;}if(known===series.length)points.push({time,stamp,value:sum});}if(points.length)series.push({id:'total:'+unit,label:'Общий итог · '+unit,color:'#1d324b',points,total:true});}
+  return series;
+}
+function currencyChart(host,unit){const section=node('section','currency-chart');section.append(node('strong','',unit));const svg=svgNode('svg',{viewBox:'0 0 460 170',role:'img'});section.append(svg);host.append(section);return svg;}
+function chartGrid(svg,min,max,first,last){for(let i=0;i<3;i++){const y=22+i*57;svg.append(svgNode('line',{x1:54,x2:446,y1:y,y2:y,stroke:'#e8eef3'}),svgNode('text',{x:46,y:y+3,'text-anchor':'end','font-size':9,fill:'#8b99a6'},num(max-(max-min)*i/2,0)));}svg.append(svgNode('text',{x:54,y:162,'font-size':9,fill:'#8b99a6'},first));if(last!==first)svg.append(svgNode('text',{x:446,y:162,'text-anchor':'end','font-size':9,fill:'#8b99a6'},last));}
+function bindGroupedEquityTooltip(svg,series,times,toX,toY,unit){
+  const guide=svgNode('line',{y1:16,y2:138,stroke:'#8daf9b','stroke-dasharray':'3 3',visibility:'hidden','pointer-events':'none'}),markers=series.map(s=>svgNode('circle',{r:3.5,fill:s.color,stroke:'#fff','stroke-width':1.5,visibility:'hidden','pointer-events':'none'}));
+  const hit=svgNode('rect',{x:54,y:16,width:392,height:123,fill:'transparent','pointer-events':'all',tabindex:0,class:'equity-hit',role:'img','aria-label':'История выбранных счетов; стрелки выбирают момент времени','aria-describedby':'chartTooltip'});svg.append(guide,...markers,hit);let selected=times.length-1;
+  const clear=()=>{guide.setAttribute('visibility','hidden');markers.forEach(m=>m.setAttribute('visibility','hidden'));};
+  const show=(event={},index=null)=>{const box=svg.getBoundingClientRect(),scale=Math.min(box.width/460,box.height/170)||1,left=box.left+(box.width-460*scale)/2,top=box.top+(box.height-170*scale)/2;
+    selected=index===null?closestTimeIndex(times,times[0]+(((event.clientX-left)/scale-54)/392)*(times.at(-1)-times[0])):index;
+    const time=times[selected],items=[];let stamp='';series.forEach((s,i)=>{const p=pointAt(s.points,time);if(p){if(p.time===time)stamp=p.stamp;markers[i].setAttribute('cx',toX(p.time));markers[i].setAttribute('cy',toY(p.value));markers[i].setAttribute('visibility','visible');}else markers[i].setAttribute('visibility','hidden');items.push({label:s.label+(p&&p.time!==time?' · '+dateLabel(p.stamp):''),amount:p?money(p.value,unit):'Нет снимка',color:s.color});});
+    const x=toX(time);guide.setAttribute('x1',x);guide.setAttribute('x2',x);guide.setAttribute('visibility','visible');showChartTooltip(hit,Number.isFinite(event.clientX)?event:{clientX:left+x*scale,clientY:top+70*scale},dateLabel(stamp),items.reverse(),clear);
+  };
+  for(const type of ['pointerenter','pointermove','pointerdown'])hit.addEventListener(type,event=>show(event));hit.addEventListener('focus',event=>show(event,selected));for(const type of ['pointerleave','blur'])hit.addEventListener(type,hideChartTooltip);
+  hit.addEventListener('keydown',event=>{if(event.key==='Escape'){hideChartTooltip();return;}if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();show({},event.key==='Home'?0:event.key==='End'?times.length-1:Math.max(0,Math.min(times.length-1,selected+(event.key==='ArrowLeft'?-1:1))));});
+}
+function renderGroupedEquity(portfolios){
+  const host=$('equityChart');host.classList.add('multi-chart');host.replaceChildren();$('equityLegend').replaceChildren();
+  if(!portfolios.length){host.textContent='Выберите счета в фильтре';return;}
+  const legend=node('div','legend-items');for(const p of portfolios){const item=node('span','legend-item');item.append(coloredDot(accountColor(p.id)),node('span','',accountLabel(p.account)));legend.append(item);}$('equityLegend').append(legend,node('div','small','Пунктир — общий итог по одной валюте; до первого снимка каждого счета итог не строится.'));
+  for(const [unit,accounts]of byCurrency(portfolios)){
+    const series=historySeries(accounts,unit),all=series.flatMap(s=>s.points),svg=currencyChart(host,unit);if(!all.length){svg.append(svgNode('text',{x:230,y:85,'text-anchor':'middle','font-size':11,fill:'#81909e'},'Нет истории стоимости'));continue;}
+    const times=[...new Set(all.map(p=>p.time))].sort((a,b)=>a-b);let min=all.reduce((value,p)=>Math.min(value,p.value),Infinity),max=all.reduce((value,p)=>Math.max(value,p.value),-Infinity);const pad=Math.max((max-min)*.15,Math.abs(max)*.001,1);min-=pad;max+=pad;
+    const toX=time=>54+(times.length>1?(time-times[0])/(times.at(-1)-times[0]):.5)*392,toY=value=>137-(value-min)/(max-min)*115;
+    const first=all.find(p=>p.time===times[0]).stamp,last=all.find(p=>p.time===times.at(-1)).stamp;chartGrid(svg,min,max,dateLabel(first),dateLabel(last));
+    for(const s of series){let points=s.points.map(p=>[toX(p.time),toY(p.value)]);if(s.total&&points.length>1)points=points.flatMap((p,i)=>i?[[p[0],toY(s.points[i-1].value)],p]:[p]);const line=svgNode('polyline',{points:points.map(p=>p.join(',')).join(' '),fill:'none',stroke:s.color,'stroke-width':s.total?2.5:1.8});if(s.total)line.setAttribute('stroke-dasharray','5 3');svg.append(line);if(s.points.length===1)svg.append(svgNode('circle',{cx:toX(s.points[0].time),cy:toY(s.points[0].value),r:3,fill:s.color}));}
+    bindGroupedEquityTooltip(svg,series,times,toX,toY,unit);
+  }
+}
+function maturityGroups(portfolios,cutoff){return byCurrency(portfolios).map(([unit,accounts])=>{const months=new Map();for(const p of accounts)for(const [month,amount]of maturityBuckets(p.data.planning,String(cutoff).slice(0,10))){if(!months.has(month))months.set(month,{month,total:0,parts:[]});months.get(month).total+=amount;months.get(month).parts.push({id:p.id,label:accountLabel(p.account),amount,color:accountColor(p.id)});}return {unit,months:[...months.values()].sort((a,b)=>a.month.localeCompare(b.month))};});}
+function renderGroupedMaturities(portfolios){
+  const host=$('maturityChart');host.classList.add('multi-chart');host.replaceChildren();$('maturityLegend').textContent='Цвета соответствуют счетам. Столбик — сумма плановых поступлений; валюты показаны отдельно.';
+  if(!portfolios.length){host.textContent='Выберите счета в фильтре';return;}
+  for(const group of maturityGroups(portfolios,S.view.data.selected_date)){
+    const svg=currencyChart(host,group.unit),months=group.months.slice(0,18);if(!months.length){svg.append(svgNode('text',{x:230,y:85,'text-anchor':'middle','font-size':11,fill:'#81909e'},'Нет плановых погашений'));continue;}
+    const max=Math.max(...months.map(m=>m.total)),width=392/months.length;chartGrid(svg,0,max,'','');
+    months.forEach((m,index)=>{let base=137;const period=new Intl.DateTimeFormat('ru-RU',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(m.month+'-01T12:00:00Z')),items=[{label:'Общий итог',amount:money(m.total,group.unit),color:'#1d324b'},...m.parts.map(p=>({label:p.label,amount:money(p.amount,group.unit),color:p.color}))];for(const part of m.parts){const height=part.amount/max*115;base-=height;const rect=svgNode('rect',{x:54+index*width+Math.min(4,width*.1),y:base,width:width*.75,height,fill:part.color});bindChartTooltip(rect,period,items);svg.append(rect);}if(index%Math.max(1,Math.ceil(months.length/6))===0)svg.append(svgNode('text',{x:54+index*width+width*.4,y:159,'text-anchor':'middle','font-size':8,fill:'#8b99a6'},m.month.slice(5)+'.'+m.month.slice(2,4)));});
+    if(group.months.length>18)$('maturityLegend').textContent+=' На графике первые 18 месяцев каждой валюты; все строки доступны в таблице.';
+  }
+}
+function setHistory(on){const view=S.view;if(!view||view.busy)return;view.history=on;paintView();if(!on&&view.data&&view.data.selected_date!==view.data.latest_date)return loadSnapshot();}
+if(location.pathname!=='/about'){
+  document.querySelectorAll('.nav a[href="/"],.nav a[href="/monitor"],a.btn[href="/monitor"]').forEach(a=>a.onclick=e=>{e.preventDefault();history.pushState(null,'',a.getAttribute('href'));navigate();});
+}
+window.addEventListener('popstate',navigate);
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>changeMode(b.dataset.mode));
+document.querySelectorAll('[data-selection]').forEach(b=>b.onclick=()=>setSelection(b.dataset.selection));
+$('connectionToggle').onclick=()=>{if(S.view){S.view.collapsed=false;paintView();}};
+$('collapseConnection').onclick=()=>{if(S.view?.data){S.view.collapsed=true;paintView();}};
+$('selectAllAccounts').onclick=()=>{if(S.view){S.view.accountFilter=null;S.view.page=0;paintView();}};
+$('accountFilterSearch').oninput=()=>{if(S.view){S.view.accountSearch=$('accountFilterSearch').value;renderAccountFilters();}};
+$('clearAccounts').onclick=()=>{if(S.view){S.view.accountFilter=new Set();S.view.page=0;paintView();}};
+$('profileSearch').oninput=()=>{S.picks[S.mode].search=$('profileSearch').value;fillProfiles();};
+$('profile').onchange=()=>activateProfile($('profile').value);
+$('connect').onclick=connect;
+$('account').onchange=()=>{const view=S.view;view.account=$('account').value;view.data=null;view.history=false;view.historyDay='';paintView();return loadSnapshot();};
+$('latestView').onclick=()=>setHistory(false);$('historyView').onclick=()=>setHistory(true);
+$('snapshotDate').onchange=()=>loadSnapshot($('snapshotDate').value);
+$('refresh').onclick=()=>loadSnapshot(S.view?.history?$('snapshotDate').value:'');
+$('historyDay').oninput=()=>{if(S.view)S.view.historyDay=$('historyDay').value;};
+$('findDay').onclick=()=>{if($('historyDay').value)return loadSnapshot('',$('historyDay').value);};
+document.querySelectorAll('[data-table]').forEach(b=>b.onclick=()=>{if(!S.view)return;S.view.table=b.dataset.table;S.view.sort=null;S.view.page=0;paintView();});
+$('tableSearch').oninput=()=>{if(!S.view)return;S.view.tableSearch=$('tableSearch').value;S.view.page=0;renderTable();};
+$('prevPage').onclick=()=>{S.view.page--;renderTable();};$('nextPage').onclick=()=>{S.view.page++;renderTable();};
+window.addEventListener('resize',hideChartTooltip);document.addEventListener('scroll',hideChartTooltip,true);document.addEventListener('keydown',e=>{if(e.key==='Escape')hideChartTooltip();});
+async function init(){navigate();if(location.pathname==='/about')return;if(location.pathname==='/logs'){await showLog(logKind);return;}try{const data=await api('/api/profiles');S.profiles=data.profiles;$('monitorCount').textContent=S.profiles.filter(p=>p.mode==='monitoring').length;$('tradingCount').textContent=S.profiles.filter(p=>p.mode==='trading').length;$('dbCount').textContent=S.profiles.filter(p=>p.has_database).length;fillProfiles();}catch(e){alertBox('globalError',e.message);$('homeView').append(node('div','alert error',e.message));$('connect').disabled=true;}}init();
+</script></body></html>
