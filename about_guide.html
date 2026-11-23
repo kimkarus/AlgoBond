@@ -1,0 +1,1950 @@
+<h2>Мобильное приложение для Android</h2>
+<p>Мобильное приложение AlgoBond для Android устанавливается и работает самостоятельно. Оно <strong>не связано с десктопной версией AlgoBond</strong>. Приложение опубликовано в RuStore и Google Play.</p>
+<ul>
+<li><a href="https://algobond.ru/go/rustore-mobilnaya-versiya-algobond/">Скачать в RuStore</a></li>
+<li><a href="https://algobond.ru/go/google-play-mobilnaya-versiya-algobond/">Скачать в Google Play</a></li>
+</ul>
+<h2>Содержание</h2>
+<ul>
+<li><a href="#workflow">Возможности и порядок работы</a></li>
+<li><a href="#structure">Структура проекта</a></li>
+<li><a href="#installation">Установка в Windows и Linux</a></li>
+<li><a href="#first-run">Первый запуск</a></li>
+<li><a href="#configuration">Файлы конфигураций</a></li>
+<li><a href="#brokers">Подключение брокеров</a></li>
+<li><a href="#strategy">Настройка стратегии</a></li>
+<li><a href="#stages">Интервалы погашения и этапы</a></li>
+<li><a href="#liquidity">Ликвидность и расписание стратегии</a></li>
+<li><a href="#database">Настройка базы данных</a></li>
+<li><a href="#web">Работа с веб-интерфейсом</a></li>
+<li><a href="#support">Чат технической поддержки</a></li>
+<li><a href="#editor">Редактор конфигураций</a></li>
+<li><a href="#monitoring">Мониторинг одного и нескольких счетов</a></li>
+<li><a href="#cli">Запуск сценариев из командной строки</a></li>
+<li><a href="#autostart">Настройка автозапусков</a></li>
+<li><a href="#data">Файлы инструментов и результатов</a></li>
+<li><a href="#logs">Логи AlgoBond</a></li>
+<li><a href="#diagnostics">Диагностика и типовые ситуации</a></li>
+<li><a href="#tests">Автоматические проверки</a></li>
+<li><a href="#backup">Хранение настроек и резервное копирование</a></li>
+</ul>
+<a id="workflow"></a>
+<h2>Возможности и порядок работы</h2>
+<table>
+<thead>
+<tr>
+<th>Задача</th>
+<th>Возможности</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Подключение к брокерам</td>
+<td>Адаптеры Finam, Т-Инвестиций, Alor и БКС</td>
+</tr>
+<tr>
+<td>Анализ облигаций</td>
+<td>Данные MOEX, фильтры торговых досок, сроков до погашения, цены, купона и расчётных показателей</td>
+</tr>
+<tr>
+<td>Управление портфелем</td>
+<td>Ограничение доли облигаций, размера позиции, распределение по срокам, условия входа и выхода</td>
+</tr>
+<tr>
+<td>Торговля</td>
+<td>Исполнение сценариев через API подключённого брокера</td>
+</tr>
+<tr>
+<td>Ребалансировка</td>
+<td>Обработка позиций по параметрам стратегии и интервалов</td>
+</tr>
+<tr>
+<td>Деградация</td>
+<td>Обработка позиций, соответствующих настроенным условиям снижения цены</td>
+</tr>
+<tr>
+<td>Ликвидность</td>
+<td>Отдельные дневные и недельные сценарии фонда ликвидности</td>
+</tr>
+<tr>
+<td>История</td>
+<td>Сохранение состояния счёта, состава портфеля и аналитики в базе данных</td>
+</tr>
+<tr>
+<td>Мониторинг</td>
+<td>Последний сохранённый снимок, история, таблицы, графики и совместный просмотр нескольких счетов</td>
+</tr>
+<tr>
+<td>Редактор</td>
+<td>Создание и копирование INI, поля и переключатели, интервалы, проверка и резервные копии</td>
+</tr>
+<tr>
+<td>Автозапуски</td>
+<td>Windows Task Scheduler и cron Linux, ручной запуск, журналы, включение и удаление заданий</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-mermaid">flowchart TD
+    E[&quot;Редактор INI&quot;] --&gt; C[&quot;Конфигурации&quot;]
+    C --&gt; S[&quot;Сценарии AlgoBond&quot;]
+    A[&quot;Windows / cron&quot;] --&gt; S
+    M[&quot;Данные MOEX&quot;] --&gt; S
+    S &lt;--&gt; B[&quot;API брокера&quot;]
+    S --&gt; D[&quot;База данных&quot;]
+    D --&gt; V[&quot;Мониторинг портфеля&quot;]
+</code></pre>
+<p>Обычный рабочий процесс:</p>
+<ol>
+<li>Подготовить виртуальное окружение Python.</li>
+<li>Создать INI нужного счёта в папке мониторинга или торговли.</li>
+<li>Заполнить реквизиты брокера и параметры стратегии.</li>
+<li>При необходимости настроить сохранение в базу данных.</li>
+<li>Выполнить расчёт и нужный сценарий вручную.</li>
+<li>Проверить результаты в базе и веб-мониторинге.</li>
+<li>Создать регламентное задание для повторяющихся запусков.</li>
+</ol>
+<p>Торговля, ребалансировка, деградация и управление ликвидностью используют подключённый брокерский счёт и могут выставлять заявки. Открытие веб-формы и сохранение INI сами по себе эти сценарии не запускают.</p>
+<a id="structure"></a>
+<h2>Структура проекта</h2>
+<p>Все пути ниже указаны относительно корня репозитория.</p>
+<table>
+<thead>
+<tr>
+<th>Путь</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>config_demo.ini</code></td>
+<td>Образец структуры конфигурации</td>
+</tr>
+<tr>
+<td><code>algobond-logo-blue.png</code></td>
+<td>Логотип веб-интерфейса</td>
+</tr>
+<tr>
+<td><code>requirements.txt</code></td>
+<td>Основные зависимости приложения</td>
+</tr>
+<tr>
+<td><code>requirements_full_with_versions.txt</code></td>
+<td>Развёрнутый список пакетов окружения, включая инструменты разработки и сборки</td>
+</tr>
+<tr>
+<td><code>start_dashboard.py</code></td>
+<td>Единая веб-форма</td>
+</tr>
+<tr>
+<td><code>dashboard.html</code></td>
+<td>Главная страница и интерфейс мониторинга</td>
+</tr>
+<tr>
+<td><code>start_config_editor.py</code></td>
+<td>Самостоятельный запуск редактора INI</td>
+</tr>
+<tr>
+<td><code>start_autostart.py</code></td>
+<td>Прямой вход в управление автозапусками</td>
+</tr>
+<tr>
+<td><code>autostart.html</code></td>
+<td>Интерфейс расписаний и заданий</td>
+</tr>
+<tr>
+<td><code>algobond_monitor.py</code></td>
+<td>Чтение базы для веб-мониторинга</td>
+</tr>
+<tr>
+<td><code>algobond_autostart.py</code></td>
+<td>Менеджер заданий, генерация пакетов и запуск процессов</td>
+</tr>
+<tr>
+<td><code>start_monitoring.py</code></td>
+<td>Получение данных у брокеров для мониторинга</td>
+</tr>
+<tr>
+<td><code>start_calculate.py</code></td>
+<td>Расчётный сценарий</td>
+</tr>
+<tr>
+<td><code>start_trading.py</code></td>
+<td>Торговля облигациями</td>
+</tr>
+<tr>
+<td><code>start_rebalancing.py</code></td>
+<td>Ребалансировка</td>
+</tr>
+<tr>
+<td><code>start_degradating.py</code></td>
+<td>Обработка деградирующих позиций</td>
+</tr>
+<tr>
+<td><code>start_liquidity_fund.py</code></td>
+<td>Работа с фондом ликвидности</td>
+</tr>
+<tr>
+<td><code>start_analytics.py</code></td>
+<td>Запуск аналитики</td>
+</tr>
+<tr>
+<td><code>start_algobond*.py</code></td>
+<td>Интерактивные варианты запуска программы</td>
+</tr>
+<tr>
+<td><code>libs/configs/</code></td>
+<td>Чтение INI и представление параметров</td>
+</tr>
+<tr>
+<td><code>libs/analyzer/</code></td>
+<td>Подготовка данных и выполнение сценариев</td>
+</tr>
+<tr>
+<td><code>libs/brokers/</code></td>
+<td>Общий слой работы с брокерскими данными</td>
+</tr>
+<tr>
+<td><code>libs/interfaces/brokers/</code></td>
+<td>Брокерские адаптеры и API</td>
+</tr>
+<tr>
+<td><code>libs/interfaces/databases/</code></td>
+<td>Провайдер и адаптеры баз данных</td>
+</tr>
+<tr>
+<td><code>libs/interfaces/platforms/</code></td>
+<td>Интеграции с торговыми платформами</td>
+</tr>
+<tr>
+<td><code>libs/common/</code></td>
+<td>Общие функции и торговые операции</td>
+</tr>
+<tr>
+<td><code>data/configs/accounts/monitoring/</code></td>
+<td>Профили сборщика мониторинга</td>
+</tr>
+<tr>
+<td><code>data/configs/accounts/trading/</code></td>
+<td>Профили торговых сценариев</td>
+</tr>
+<tr>
+<td><code>data/configs/editor_backups/</code></td>
+<td>Резервные копии, создаваемые редактором</td>
+</tr>
+<tr>
+<td><code>data/algobond.db</code></td>
+<td>Локальная база SQLite</td>
+</tr>
+<tr>
+<td><code>data/MOEX/</code></td>
+<td>Биржевые справочники</td>
+</tr>
+<tr>
+<td><code>data/calculations/MOEX/</code></td>
+<td>Расчётные CSV-файлы</td>
+</tr>
+<tr>
+<td><code>data/parametres/</code></td>
+<td>Списки инструментов и служебные параметры</td>
+</tr>
+<tr>
+<td><code>data/autostart/</code></td>
+<td>Описания заданий, статусы, журналы и архивы</td>
+</tr>
+<tr>
+<td><code>diagnose_monitoring.py</code></td>
+<td>Диагностика импортов и подключения к базе</td>
+</tr>
+<tr>
+<td><code>tests/</code></td>
+<td>Автоматические проверки</td>
+</tr>
+</tbody>
+</table>
+<p>Имена каталогов <code>parametres</code> и файлов <code>degradating</code>, <code>symbols_excepltion</code>, <code>symbols_low_raiting</code> используются именно в таком написании. Сохраняйте их при переносе проекта и настройке путей.</p>
+<a id="installation"></a>
+<h2>Установка в Windows и Linux</h2>
+<h3>Что требуется</h3>
+<ul>
+<li>Python 3.10 или новее для веб-интерфейса и менеджера автозапусков. Для запуска из исходного кода подготовьте виртуальное окружение. Примеры Windows ниже используют Python 3.10.</li>
+<li>Современный браузер для веб-интерфейса.</li>
+<li>Доступ к API брокера и данным MOEX для соответствующих сценариев.</li>
+<li>Реквизиты брокера и, для лицензируемого варианта запуска, ключ программы.</li>
+<li>SQLite либо доступный сервер PostgreSQL / ClickHouse для сохранения и просмотра истории.</li>
+<li>Для регламентных запусков — Windows Task Scheduler или установленный cron Linux.</li>
+</ul>
+<a id="windows-exe"></a>
+<h3>Windows: запуск готовой сборки</h3>
+<p>Если вы используете готовую лицензируемую сборку AlgoBond для Windows, запускайте сценарии через входящий в неё файл <code>start_algobond_*.exe</code>, соответствующий вашему варианту лицензии. Распакуйте сборку и запускайте EXE из её корневой папки рядом с <code>data</code>. Профили для запуска через EXE хранятся в <code>data/configs/accounts/trading/</code>. Укажите лицензионный ключ в параметре <code>license_key</code> секции <code>[program]</code> нужного INI.</p>
+<p>Например, чтобы выполнить расчёт по одному профилю в сборке FULL, из папки сборки выполните в <code>cmd.exe</code> следующую команду.</p>
+<pre><code class="language-bat">start_algobond_full.exe 3 &quot;&quot; &quot;&quot; &quot;&quot; &quot;./data/configs/accounts/trading/account_001.ini&quot;
+</code></pre>
+<p>Сами EXE запускаются без установки Python. Для веб-интерфейса и менеджера автозапусков установите Python 3.10 или новее и откройте <code>launch_algobond_ui.cmd</code> из распакованной папки. Выбор сборки в форме описан в разделе <a href="#autostart">«Настройка автозапусков»</a>.</p>
+<h3>Установка из исходного кода</h3>
+<p>Для версии с открытой лицензией скачайте репозиторий через <strong>Code → Download ZIP</strong> либо склонируйте его обычным способом. Распакуйте проект и откройте терминал в каталоге, содержащем <code>config_demo.ini</code> и скрипты <code>start_*.py</code>.</p>
+<h3>Windows: создание окружения</h3>
+<p>В PowerShell из корня проекта:</p>
+<pre><code class="language-powershell">py -3.10 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip check
+</code></pre>
+<p>Интерпретатор можно вызывать полным относительным путём без активации окружения:</p>
+<pre><code class="language-powershell">.\.venv\Scripts\python.exe -B start_dashboard.py
+</code></pre>
+<p>Если политика PowerShell разрешает скрипты активации, можно активировать окружение:</p>
+<pre><code class="language-powershell">.\.venv\Scripts\Activate.ps1
+python --version
+</code></pre>
+<p>Альтернатива в <code>cmd.exe</code>:</p>
+<pre><code class="language-bat">.venv\Scripts\activate.bat
+python --version
+</code></pre>
+<h3>Linux: создание окружения</h3>
+<p>Из корня проекта:</p>
+<pre><code class="language-bash">python3 --version
+python3 -m venv .venv
+./.venv/bin/python -m pip install --upgrade pip
+./.venv/bin/python -m pip install -r requirements.txt
+./.venv/bin/python -m pip check
+</code></pre>
+<p>Убедитесь, что <code>python3</code> соответствует нужной версии. Для активации:</p>
+<pre><code class="language-bash">source .venv/bin/activate
+python --version
+</code></pre>
+<p>Прямой запуск без активации:</p>
+<pre><code class="language-bash">./.venv/bin/python -B start_dashboard.py
+</code></pre>
+<p><strong>В последующих примерах <code>python</code> означает интерпретатор виртуального окружения проекта.</strong> Если окружение не активировано, заменяйте его на <code>.\.venv\Scripts\python.exe</code> в Windows или <code>./.venv/bin/python</code> в Linux.</p>
+<h3>Зависимости отдельных компонентов</h3>
+<p>Веб-сервер, форма редактора и менеджер автозапусков используют стандартную библиотеку Python. Клиентский архив содержит готовое HTML-руководство для раздела «О программе». При запуске из исходного кода руководство отображается с помощью <code>markdown-it-py</code>. Эта библиотека и зависимости для чтения базы и выполнения брокерских сценариев перечислены в <code>requirements.txt</code>.</p>
+<p>В проект входят исходники брокерских обёрток и сгенерированные API-модули. Их внешние зависимости устанавливаются в то же окружение. PostgreSQL использует предусмотренные провайдером драйверы <code>psycopg2</code> / <code>pg8000</code>; SQLite доступен через стандартный модуль <code>sqlite3</code>.</p>
+<p><code>requirements_full_with_versions.txt</code> содержит также пакеты для Windows, мобильной среды, упаковки и разработки. Для обычной установки используйте основной <code>requirements.txt</code>; полный файл служит перечнем расширенного окружения.</p>
+<h3>Рабочие каталоги</h3>
+<p>Если рабочие папки отсутствуют, создайте их до первого запуска сборщика или расчёта.</p>
+<p>PowerShell:</p>
+<pre><code class="language-powershell">New-Item -ItemType Directory -Force -Path data/configs/accounts/monitoring, data/configs/accounts/trading, data/calculations/MOEX, data/MOEX, data/parametres, data/logs
+</code></pre>
+<p>Linux:</p>
+<pre><code class="language-bash">mkdir -p data/configs/accounts/monitoring data/configs/accounts/trading
+mkdir -p data/calculations/MOEX data/MOEX data/parametres data/logs
+</code></pre>
+<a id="first-run"></a>
+<h2>Первый запуск</h2>
+<h3>1. Откройте единую форму</h3>
+<pre><code class="language-bash">python -B start_dashboard.py
+</code></pre>
+<p>В Windows можно также открыть <code>launch_algobond_ui.cmd</code>. Он использует <code>.venv</code> рядом со скриптом, если она есть. Иначе он ищет Python через <code>py</code> и <code>PATH</code>.</p>
+<p>В консоли появится адрес локального приложения. Браузер откроется автоматически; при необходимости скопируйте напечатанную ссылку целиком, включая фрагмент <code>#token=...</code>.</p>
+<h3>2. Создайте профиль</h3>
+<ol>
+<li>На главной странице откройте редактор конфигураций.</li>
+<li>Выберите папку «Мониторинг» для сбора данных либо «Торговля» для торгового сценария.</li>
+<li>Нажмите «Новый профиль» и задайте имя, например <code>account_001.ini</code>.</li>
+<li>Заполните брокера, токен, идентификаторы счёта и имя портфеля.</li>
+<li>Настройте стратегию и, при необходимости, базу данных.</li>
+<li>Выполните проверку и сохраните профиль.</li>
+</ol>
+<p>Новый профиль создаётся выключенным. После заполнения реквизитов установите <code>active = 1</code> для обработки брокерскими сценариями.</p>
+<h3>3. Подготовьте данные</h3>
+<p>При работе с готовой сборкой для Windows используйте <a href="#windows-exe">запуск через EXE</a>. Команды ниже предназначены для запуска из исходного кода.</p>
+<p>Для расчёта:</p>
+<pre><code class="language-bash">python -B start_calculate.py
+</code></pre>
+<p>Для сохранения состояния профилей из папки мониторинга:</p>
+<pre><code class="language-bash">python -B start_monitoring.py
+</code></pre>
+<p>Для сохранения истории в профиле должна быть заполнена секция <code>[database]</code>.</p>
+<h3>4. Откройте портфель</h3>
+<p>В разделе «Мониторинг портфеля» выберите нужный профиль с базой данных и подключитесь. Список счетов ограничивается <code>client.login</code> выбранных INI. Если история ещё не записана сборщиком, сначала выполните сбор данных.</p>
+<h3>5. Настройте торговый запуск</h3>
+<p>Для торговли используйте отдельный профиль в <code>data/configs/accounts/trading/</code>. Проверьте его параметры в редакторе, выполните нужный сценарий вручную, затем настройте расписание в разделе «Автозапуски».</p>
+<a id="configuration"></a>
+<h2>Файлы конфигураций</h2>
+<h3>Папки и выбор профилей</h3>
+<table>
+<thead>
+<tr>
+<th>Папка</th>
+<th>Использование</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>data/configs/accounts/monitoring/</code></td>
+<td><code>start_monitoring.py</code>; приоритетная папка для <code>start_calculate.py</code></td>
+</tr>
+<tr>
+<td><code>data/configs/accounts/trading/</code></td>
+<td>Торговля, ребалансировка, деградация, ликвидность, аналитика и интерактивные варианты запуска</td>
+</tr>
+</tbody>
+</table>
+<p>В каждой папке может быть несколько INI. Профиль описывает реквизиты подключения и параметры обработки конкретного счёта. Имена файлов выбираются пользователем, например <code>monitor_account.ini</code> и <code>trade_account.ini</code>.</p>
+<p>Скрипты брокерских сценариев обрабатывают активные профили. Фильтры командной строки дополнительно ограничивают список по брокеру, клиенту и логину. В веб-мониторинге активность профиля не заменяет настройку базы: для просмотра важны секция <code>[database]</code>, корректный <code>login</code> и существующие записи.</p>
+<p>Храните в <code>accounts</code> рабочие INI. Резервные копии редактора находятся в отдельном каталоге <code>data/configs/editor_backups/</code>.</p>
+<h3>Формат INI</h3>
+<ul>
+<li>Кодировка — UTF-8. При создании файла вручную используйте UTF-8 без BOM; редактор сохраняет кодировку существующего файла.</li>
+<li>Секции и ключи задаются в формате <code>ключ = значение</code>.</li>
+<li>Числа записываются с точкой: <code>0.13</code>, <code>2.5</code>.</li>
+<li>Для логических параметров используйте <code>True</code> и <code>False</code>.</li>
+<li>Даты — <code>YYYY-MM-DD</code>, дата со временем — <code>YYYY-MM-DD HH:MM:SS</code>, когда поле требует время.</li>
+<li>Комментарии размещайте отдельными строками, начиная с <code>;</code> или <code>#</code>.</li>
+<li>Кавычки вокруг токенов, логинов и чисел не нужны: в INI они могут стать частью значения.</li>
+<li>Для буквального знака <code>%</code> при ручном редактировании учитывайте интерполяцию <code>ConfigParser</code>: используется <code>%%</code>. Процентные настройки стратегии задаются числами без знака <code>%</code>.</li>
+</ul>
+<h3>Пример профиля</h3>
+<p>Ниже демонстрационный профиль Т-Инвестиций с SQLite. Значения стратегии иллюстрируют формат записи. Замените заполнители реквизитами своего счёта; профиль оставлен выключенным.</p>
+<pre><code class="language-ini">[program]
+license_key = REPLACE_WITH_LICENSE_KEY
+
+[client]
+active = 0
+client_id = client_001
+login = ACCOUNT_LOGIN
+client_name = Bond portfolio
+broker_name = Tinkoff
+broker_company = T-Investments
+broker_server = TINKOFF
+broker_type_api = grpc
+type_account = Bonds
+token = REPLACE_WITH_BROKER_TOKEN
+token_grpc =
+account_id =
+account_id_grpc =
+enable_autofollow_strategy = False
+strategy_id =
+
+[database]
+type = sqlite3
+name = algobond
+address =
+port = 0
+login =
+password =
+storage_depth_days = 365
+
+[settings]
+boards = TQCB,TQIR,TQOB
+portfolio_max_percent_bonds = 80
+k_count = 1
+p_risk = 2
+order_open_percent = 100
+order_close_percent = 100
+use_getting_current_price = False
+use_checking_order_book = False
+low_price = 65
+low_couponpercent = 5
+tax = 0.13
+max_count_lot = 200
+broker_comission_perdeal = 50
+days_planning_min = 5
+days_planning_max = 365
+bonds_config = 5-90:25;90-180:35;180-365:40
+enable_rebalancing_by_config = False
+enable_sell_degradating_position = False
+percent_degradating_position_for_sell = 5
+liquidity_fund = TMON
+enable_liquidity_fund_weekend = False
+enable_liquidity_fund_everyday = False
+enable_liquidity_fund_leverage = False
+financial_support_for_liquidity_fund = 0
+untouchable_balance_of_funds = 0
+schedule_hour_start_trading = 10
+schedule_hour_end_trading = 17
+schedule_hour_start_rebalancing = 10
+schedule_hour_end_rebalancing = 17
+schedule_hour_start_degradating = 10
+schedule_hour_end_degradating = 17
+close_all = False
+</code></pre>
+<p>Если база не используется, удалите секцию <code>[database]</code> целиком. Пустая секция не означает отключение хранения.</p>
+<h3>Секция <code>[program]</code></h3>
+<table>
+<thead>
+<tr>
+<th>Ключ</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>license_key</code></td>
+<td>Ключ активации для соответствующего лицензируемого варианта программы</td>
+</tr>
+</tbody>
+</table>
+<p>Для интерактивных вариантов выбирайте точку входа, соответствующую типу ключа. Ограничения варианта загружаются через механизм лицензирования программы.</p>
+<h3>Секция <code>[client]</code></h3>
+<table>
+<thead>
+<tr>
+<th>Ключ</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>active</code></td>
+<td><code>1</code> — профиль участвует в обработке брокерскими сценариями; <code>0</code> — выключен</td>
+</tr>
+<tr>
+<td><code>client_id</code></td>
+<td>Пользовательский идентификатор клиента; участвует в фильтрации и сохранении данных</td>
+</tr>
+<tr>
+<td><code>login</code></td>
+<td>Идентификатор профиля / счёта, используемый адаптером, локальными путями и записями базы</td>
+</tr>
+<tr>
+<td><code>client_name</code></td>
+<td>Читаемое имя портфеля</td>
+</tr>
+<tr>
+<td><code>broker_name</code></td>
+<td>Код адаптера: <code>Finam</code>, <code>Tinkoff</code>, <code>Alor</code>, <code>BCS</code></td>
+</tr>
+<tr>
+<td><code>broker_type_api</code></td>
+<td>Параметр вида API; для показанных ниже gRPC-подключений — <code>grpc</code></td>
+</tr>
+<tr>
+<td><code>token</code></td>
+<td>Основной токен брокера; конкретный тип определяется адаптером</td>
+</tr>
+<tr>
+<td><code>token_grpc</code></td>
+<td>Токен gRPC, используемый адаптером Finam</td>
+</tr>
+<tr>
+<td><code>account_id</code></td>
+<td>Идентификатор счёта / портфеля, когда он требуется адаптером</td>
+</tr>
+<tr>
+<td><code>account_id_grpc</code></td>
+<td>Идентификатор счёта gRPC, когда он требуется адаптером</td>
+</tr>
+<tr>
+<td><code>broker_company</code></td>
+<td>Название компании, сохраняемое в аналитике и базе</td>
+</tr>
+<tr>
+<td><code>broker_server</code></td>
+<td>Название сервера / источника, сохраняемое в базе</td>
+</tr>
+<tr>
+<td><code>type_account</code></td>
+<td>Тип обрабатываемых инструментов; для облигационной стратегии — <code>Bonds</code></td>
+</tr>
+<tr>
+<td><code>enable_autofollow_strategy</code></td>
+<td>Подключение логики стратегии автоследования в поддерживающем её адаптере</td>
+</tr>
+<tr>
+<td><code>strategy_id</code></td>
+<td>Идентификатор стратегии автоследования</td>
+</tr>
+<tr>
+<td><code>enable_x_app_name</code></td>
+<td>Дополнительный параметр идентификации приложения в поддерживающем его адаптере / варианте запуска</td>
+</tr>
+</tbody>
+</table>
+<p><code>client.login</code> и <code>database.login</code> имеют разное назначение: первый относится к профилю счёта, второй — к пользователю СУБД.</p>
+<p>Меняйте <code>client_id</code>, <code>login</code>, <code>broker_company</code> и <code>broker_server</code> осознанно: эти значения используются для идентификации сохранённых данных. Новые значения могут образовать отдельную историю в базе.</p>
+<a id="brokers"></a>
+<h2>Подключение брокеров</h2>
+<p>Реквизиты получают в личном кабинете или сервисе API соответствующего брокера. В INI переносятся значения, ожидаемые конкретным адаптером. Настройка <code>broker_name</code> должна содержать код из таблицы, даже если публичное название брокера отличается.</p>
+<table>
+<thead>
+<tr>
+<th>Подключение</th>
+<th><code>broker_name</code></th>
+<th>Основные параметры</th>
+<th>Код адаптера</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Finam</td>
+<td><code>Finam</code></td>
+<td><code>broker_type_api = grpc</code>, <code>token_grpc</code>, <code>login</code>, при необходимости поля счёта</td>
+<td><code>libs/interfaces/brokers/finam/grpc/</code></td>
+</tr>
+<tr>
+<td>Т-Инвестиции</td>
+<td><code>Tinkoff</code></td>
+<td><code>broker_type_api = grpc</code>, <code>token</code>; параметры стратегии — при автоследовании</td>
+<td><code>libs/interfaces/brokers/tinkoff/</code></td>
+</tr>
+<tr>
+<td>Alor</td>
+<td><code>Alor</code></td>
+<td><code>token</code> как refresh token; реквизиты портфеля определяются адаптером</td>
+<td><code>libs/interfaces/brokers/alor/</code></td>
+</tr>
+<tr>
+<td>БКС</td>
+<td><code>BCS</code></td>
+<td><code>token</code> как refresh token; параметры подключения адаптера БКС</td>
+<td><code>libs/interfaces/brokers/bcs/rest/</code></td>
+</tr>
+</tbody>
+</table>
+<p>Поле <code>token</code> входит в общую структуру профиля. Для Finam gRPC оно может быть пустым, если подключение использует заполненный <code>token_grpc</code>.</p>
+<p>Начните с профиля, для которого адаптер однозначно определяет нужный счёт. Проверяйте выданные брокером идентификаторы и доступность операций для токена до назначения регулярных торговых запусков.</p>
+<a id="strategy"></a>
+<h2>Настройка стратегии</h2>
+<p>Параметры ниже относятся к секции <code>[settings]</code>. Поля, отсутствующие в INI, получают значения из кода. При настройке конкретного портфеля задавайте значимые параметры явно.</p>
+<h3>Портфель и размер позиции</h3>
+<table>
+<thead>
+<tr>
+<th>Ключ</th>
+<th>Смысл и формат</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>portfolio_max_percent_bonds</code></td>
+<td>Предельная доля облигаций в процентах от портфеля</td>
+</tr>
+<tr>
+<td><code>p_risk</code></td>
+<td>Параметр доли позиции в процентах; не является гарантированным пределом убытка</td>
+</tr>
+<tr>
+<td><code>k_count</code></td>
+<td>Множитель расчётного количества лотов</td>
+</tr>
+<tr>
+<td><code>max_count_lot</code></td>
+<td>Количественное ограничение позиции в логике подбора / покупки</td>
+</tr>
+<tr>
+<td><code>order_open_percent</code></td>
+<td>Доля расчётного объёма открывающей операции в процентах</td>
+</tr>
+<tr>
+<td><code>order_close_percent</code></td>
+<td>Доля расчётного объёма закрывающей операции в процентах</td>
+</tr>
+<tr>
+<td><code>k_share_balance</code></td>
+<td>Коэффициент доступной доли баланса в расчётах стратегии</td>
+</tr>
+<tr>
+<td><code>untouchable_balance_of_funds</code></td>
+<td>Денежный резерв для сценариев, использующих этот параметр</td>
+</tr>
+</tbody>
+</table>
+<p>Для задания предела доли облигаций используйте <strong><code>portfolio_max_percent_bonds</code></strong>. <code>portfolio_percent_bonds</code> используется ядром как показатель текущего состояния портфеля.</p>
+<p>Чтобы выключить профиль, установите <code>[client] active = 0</code>. Нулевые <code>order_open_percent</code> и <code>order_close_percent</code> не используются как универсальный выключатель операций.</p>
+<h3>Отбор облигаций и расчётные параметры</h3>
+<table>
+<thead>
+<tr>
+<th>Ключ</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>boards</code></td>
+<td>Торговые доски через запятую, например <code>TQCB,TQIR,TQOB</code>, без пробелов между кодами</td>
+</tr>
+<tr>
+<td><code>days_planning_min</code></td>
+<td>Нижняя граница числа дней до погашения</td>
+</tr>
+<tr>
+<td><code>days_planning_max</code></td>
+<td>Верхняя граница числа дней до погашения</td>
+</tr>
+<tr>
+<td><code>low_price</code></td>
+<td>Нижний порог цены в правилах отбора инструментов</td>
+</tr>
+<tr>
+<td><code>low_couponpercent</code></td>
+<td>Нижний порог купонной ставки</td>
+</tr>
+<tr>
+<td><code>tax</code></td>
+<td>Коэффициент налогового удержания для расчётов, например <code>0.13</code></td>
+</tr>
+<tr>
+<td><code>broker_comission_perdeal</code></td>
+<td>Фиксированный размер комиссии, учитываемый расчётами; имя ключа сохраняет написание <code>comission</code></td>
+</tr>
+<tr>
+<td><code>target_percent_peryear</code></td>
+<td>Целевой годовой показатель в расчётных параметрах</td>
+</tr>
+<tr>
+<td><code>target_max_date</code></td>
+<td>Целевая дата со временем: <code>YYYY-MM-DD HH:MM:SS</code></td>
+</tr>
+<tr>
+<td><code>enable_profitability</code></td>
+<td>Включение соответствующего отбора по доходности</td>
+</tr>
+<tr>
+<td><code>profitability</code></td>
+<td>Порог доходности для этого отбора</td>
+</tr>
+<tr>
+<td><code>use_getting_current_price</code></td>
+<td>Дополнительное получение текущей цены перед операцией</td>
+</tr>
+<tr>
+<td><code>use_checking_order_book</code></td>
+<td>Проверка биржевого стакана в соответствующей торговой ветке</td>
+</tr>
+<tr>
+<td><code>enable_corrention_lots_by_order_book</code></td>
+<td>Параметр коррекции количества лотов по стакану; написание ключа соответствует коду</td>
+</tr>
+<tr>
+<td><code>percent_diff_prevprice</code></td>
+<td>Процентное отклонение для сравнения цены с предыдущим значением</td>
+</tr>
+<tr>
+<td><code>percent_lot_buy</code></td>
+<td>Процентный коэффициент объёма покупки</td>
+</tr>
+<tr>
+<td><code>percent_lot_sell</code></td>
+<td>Процентный коэффициент объёма продажи</td>
+</tr>
+<tr>
+<td><code>percent_price_diff_stop</code></td>
+<td>Порог отклонения цены в проверках перед открытием позиции</td>
+</tr>
+</tbody>
+</table>
+<p><code>tax</code> и параметры комиссий задают допущения расчёта. Значения примеров не подставляются автоматически из условий брокерского тарифа.</p>
+<h3>Ребалансировка и обработка снижения цены</h3>
+<table>
+<thead>
+<tr>
+<th>Ключ</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enable_rebalancing_by_config</code></td>
+<td>Разрешение ребалансировки по настройкам портфеля</td>
+</tr>
+<tr>
+<td><code>enable_sell_degradating_position</code></td>
+<td>Разрешение обработки деградирующих позиций</td>
+</tr>
+<tr>
+<td><code>percent_degradating_position_for_sell</code></td>
+<td>Процентный параметр снижения цены в этом сценарии</td>
+</tr>
+<tr>
+<td><code>enable_target_minimum_profit_diff_sell</code></td>
+<td>Включение дополнительного условия прибыльного выхода</td>
+</tr>
+<tr>
+<td><code>percent_target_minimum_profit_diff_sell</code></td>
+<td>Минимальное процентное различие для соответствующего условия выхода</td>
+</tr>
+<tr>
+<td><code>percent_target_minimum_profit_price_sell</code></td>
+<td>Ценовой порог для соответствующего условия выхода</td>
+</tr>
+<tr>
+<td><code>close_all</code></td>
+<td>Режим массового закрытия позиций в торговом сценарии; для обычной работы — <code>False</code></td>
+</tr>
+</tbody>
+</table>
+<p>Условия операций определяются совокупностью настроек, состояния счёта, времени, данных инструмента и выбранного сценария. Запуск <code>start_rebalancing.py</code> или <code>start_degradating.py</code> не означает обязательного выставления заявки: профиль должен разрешать соответствующую обработку.</p>
+<a id="stages"></a>
+<h2>Интервалы погашения и этапы</h2>
+<h3>Базовое распределение <code>bonds_config</code></h3>
+<p>Формат одной записи:</p>
+<pre><code class="language-text">минимум_дней-максимум_дней:доля_портфеля
+</code></pre>
+<p>Несколько записей разделяются <code>;</code>:</p>
+<pre><code class="language-ini">[settings]
+bonds_config = 5-90:25;90-180:35;180-365:40
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Интервал</th>
+<th style="text-align:right">Доля, указанная в конфигурации</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5–90 дней</td>
+<td style="text-align:right">25%</td>
+</tr>
+<tr>
+<td>90–180 дней</td>
+<td style="text-align:right">35%</td>
+</tr>
+<tr>
+<td>180–365 дней</td>
+<td style="text-align:right">40%</td>
+</tr>
+</tbody>
+</table>
+<p>Проценты задаются числом без <code>%</code>. Редактор показывает сумму распределения и предупреждает, если она превышает 100%; значения не нормализуются автоматически.</p>
+<h3>Порядок обработки <code>stages_days_planning</code></h3>
+<p>Интервалы разделяются <code>|</code>:</p>
+<pre><code class="language-ini">stages_days_planning = 90-180|5-90|180-365
+</code></pre>
+<p>Запись задаёт очередность интервалов в предусмотренных стратегией этапах обработки. При отсутствии ключа используется диапазон <code>days_planning_min</code> — <code>days_planning_max</code>.</p>
+<h3>Расширенное распределение <code>stages_bonds_config</code></h3>
+<p>Формат записи с шестью полями:</p>
+<pre><code class="language-text">дни_от-дни_до:доля:p_risk:отклонение_для_покупки:цель_прибыли:дни_до_продажи
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Позиция</th>
+<th>Поле</th>
+<th>Значение в примере <code>90-180:35:2:3:10:5</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Диапазон дней до погашения</td>
+<td>90–180</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Доля портфеля для интервала</td>
+<td>35%</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>p_risk</code> для интервала</td>
+<td>2</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>target_diff_buy</code></td>
+<td>3</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>target_profit_diff_sell</code></td>
+<td>10</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>target_daysleft_sell</code></td>
+<td>5 дней</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Шестое поле — число оставшихся дней для продажи, а не процент просадки.</strong> Порог деградации задаётся отдельно через <code>percent_degradating_position_for_sell</code>.</p>
+<p>Внутри одного этапа записи разделяются <code>;</code>. Этапы разделяются <code>|</code>.</p>
+<p>Один этап из трёх интервалов:</p>
+<pre><code class="language-ini">stages_bonds_config = 5-90:25:2:2:8:5;90-180:35:2:3:10:5;180-365:40:2:4:12:10
+</code></pre>
+<p>Два этапа:</p>
+<pre><code class="language-ini">stages_bonds_config = 5-90:50:2:2:8:5;90-180:50:2:3:10:5|180-365:100:2:4:12:10
+</code></pre>
+<p>Парсер также принимает седьмое поле <code>profitability</code> для интервала. Если расширенная запись отсутствует, список этапов строится на основании <code>bonds_config</code>.</p>
+<p>Для настройки через форму откройте раздел сроков и этапов: интервалы можно добавлять строками, задавать доли и проверять итоговое распределение без ручного набора разделителей.</p>
+<a id="liquidity"></a>
+<h2>Ликвидность и расписание стратегии</h2>
+<h3>Фонд ликвидности</h3>
+<table>
+<thead>
+<tr>
+<th>Ключ</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>liquidity_fund</code></td>
+<td>Тикер фонда, используемого сценарием</td>
+</tr>
+<tr>
+<td><code>enable_liquidity_fund_weekend</code></td>
+<td>Недельный сценарий размещения / освобождения ликвидности</td>
+</tr>
+<tr>
+<td><code>enable_liquidity_fund_everyday</code></td>
+<td>Ежедневный сценарий</td>
+</tr>
+<tr>
+<td><code>enable_liquidity_fund_leverage</code></td>
+<td>Сценарий с предусмотренным обеспечением</td>
+</tr>
+<tr>
+<td><code>enable_liquidity_fund_profitable</code></td>
+<td>Проверка прибыльности в логике фонда</td>
+</tr>
+<tr>
+<td><code>financial_support_for_liquidity_fund</code></td>
+<td>Размер обеспечения для соответствующего сценария фонда</td>
+</tr>
+<tr>
+<td><code>count_for_open_liquidity_fund_per</code></td>
+<td>Количественный параметр открытия позиции фонда</td>
+</tr>
+<tr>
+<td><code>liquidity_fund_effective_rate</code></td>
+<td>Эффективная ставка в расчётах фонда</td>
+</tr>
+<tr>
+<td><code>liquidity_fund_target_profit</code></td>
+<td>Целевой показатель прибыли фонда</td>
+</tr>
+<tr>
+<td><code>broker_comission_percent_perdeal_liquidity_fund</code></td>
+<td>Комиссия в расчётах операций с фондом</td>
+</tr>
+<tr>
+<td><code>broker_leverage_percent_perday</code></td>
+<td>Дневная стоимость заёмных средств в расчётах</td>
+</tr>
+</tbody>
+</table>
+<p>В шаблоне встречаются примеры тикеров <code>FMMM</code>, <code>TMON</code>, <code>LQDT</code>, <code>BCSD</code>. Используемый тикер должен быть доступен подключённому счёту. Поле не ограничивается названием фонда конкретного брокера: указывайте инструмент, с которым должен работать сценарий.</p>
+<p>Запуск:</p>
+<pre><code class="language-bash">python -B start_liquidity_fund.py
+</code></pre>
+<h3>Торговые часы в INI</h3>
+<table>
+<thead>
+<tr>
+<th>Сценарий</th>
+<th>Начало</th>
+<th>Окончание</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Торговля</td>
+<td><code>schedule_hour_start_trading</code></td>
+<td><code>schedule_hour_end_trading</code></td>
+</tr>
+<tr>
+<td>Ребалансировка</td>
+<td><code>schedule_hour_start_rebalancing</code></td>
+<td><code>schedule_hour_end_rebalancing</code></td>
+</tr>
+<tr>
+<td>Деградация</td>
+<td><code>schedule_hour_start_degradating</code></td>
+<td><code>schedule_hour_end_degradating</code></td>
+</tr>
+<tr>
+<td>Недельная ликвидность</td>
+<td><code>schedule_hour_start_liquidity_weekend</code></td>
+<td><code>schedule_hour_end_liquidity_weekend</code></td>
+</tr>
+<tr>
+<td>Дневная ликвидность</td>
+<td><code>schedule_hour_start_liquidity_everyday</code></td>
+<td><code>schedule_hour_end_liquidity_everyday</code></td>
+</tr>
+<tr>
+<td>Ликвидность с обеспечением</td>
+<td><code>schedule_hour_start_liquidity_leverage</code></td>
+<td><code>schedule_hour_end_liquidity_leverage</code></td>
+</tr>
+</tbody>
+</table>
+<p>Часы задаются целыми числами от <code>0</code> до <code>23</code>. Для недельного сценария дополнительно используются:</p>
+<pre><code class="language-ini">schedule_day_start_liquidity_weekend = 5
+schedule_day_end_liquidity_weekend = 1
+</code></pre>
+<p>Нумерация дней: понедельник — <code>1</code>, воскресенье — <code>7</code>.</p>
+<p>Время стратегии привязано к используемому в сценарии биржевому времени; для MOEX применяется московское время. Интерактивные обёртки могут дополнительно ограничивать торговые действия рабочими днями и своим временным окном.</p>
+<p>Расписание в INI задаёт условия, при которых <strong>уже запущенный</strong> сценарий может выполнить операцию. Сам процесс запускает пользователь или планировщик ОС. Например, чтобы проверять торговые условия каждые 15 минут, создайте соответствующее задание автозапуска; одних полей <code>schedule_hour_*</code> для запуска процесса недостаточно.</p>
+<a id="database"></a>
+<h2>Настройка базы данных</h2>
+<h3>Общие правила</h3>
+<p>Наличие секции <code>[database]</code> включает использование базы в профиле. Для отключения удалите секцию полностью. Поддерживаемые значения <code>type</code>:</p>
+<ul>
+<li><code>sqlite3</code>;</li>
+<li><code>postgresql</code>;</li>
+<li><code>clickhouse</code>.</li>
+</ul>
+<p>Сохраняйте все поля структуры, даже если часть реквизитов не используется локальной SQLite:</p>
+<table>
+<thead>
+<tr>
+<th>Ключ</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td>Тип СУБД</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>Имя базы; для SQLite — служебное значение конфигурации</td>
+</tr>
+<tr>
+<td><code>address</code></td>
+<td>Адрес сервера; для SQLite может быть пустым</td>
+</tr>
+<tr>
+<td><code>port</code></td>
+<td>Порт сервера; для SQLite не используется</td>
+</tr>
+<tr>
+<td><code>login</code></td>
+<td>Пользователь базы</td>
+</tr>
+<tr>
+<td><code>password</code></td>
+<td>Пароль пользователя базы</td>
+</tr>
+<tr>
+<td><code>storage_depth_days</code></td>
+<td>Глубина хранения истории для предусмотренной адаптером очистки</td>
+</tr>
+</tbody>
+</table>
+<p>Для PostgreSQL / ClickHouse подготовьте существующую базу и учётную запись с доступом к ней. Сценарию записи нужны права на создание используемых таблиц и запись данных; просмотру — доступ на чтение. При размещении внешней СУБД разрешите соединение с компьютера, запускающего AlgoBond.</p>
+<h3>SQLite</h3>
+<pre><code class="language-ini">[database]
+type = sqlite3
+name = algobond
+address =
+port = 0
+login =
+password =
+storage_depth_days = 365
+</code></pre>
+<p>Файл базы фиксирован в конфигурационном коде: <strong><code>data/algobond.db</code></strong> относительно корня проекта. Поле <code>name</code> не задаёт путь к другому SQLite-файлу.</p>
+<p>При выполнении сценария записи SQLite использует этот файл, а необходимые таблицы подготавливаются средствами AlgoBond. Для веб-просмотра файл должен уже существовать: мониторинг не создаёт пустую базу вместо отсутствующей.</p>
+<h3>PostgreSQL</h3>
+<pre><code class="language-ini">[database]
+type = postgresql
+name = algobond
+address = 127.0.0.1
+port = 5432
+login = algobond_user
+password = REPLACE_WITH_DATABASE_PASSWORD
+storage_depth_days = 365
+</code></pre>
+<p>Драйвер выбирается существующим <code>DatabaseProvider</code>. Веб-мониторинг работает через предусмотренную ветку PostgreSQL и транзакцию чтения.</p>
+<h3>ClickHouse</h3>
+<pre><code class="language-ini">[database]
+type = clickhouse
+name = securities_analytics
+address = 127.0.0.1
+port = 8123
+login = algobond_user
+password = REPLACE_WITH_DATABASE_PASSWORD
+storage_depth_days = 365
+</code></pre>
+<p>Используется HTTP-интерфейс ClickHouse. В <code>address</code> указывайте имя узла или IP без <code>http://</code> и без порта: адрес запроса собирается адаптером из отдельных полей.</p>
+<h3>Данные портфеля</h3>
+<table>
+<thead>
+<tr>
+<th>Таблица</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AccountInfo</code></td>
+<td>Состояние счёта и показатели портфеля в момент записи</td>
+</tr>
+<tr>
+<td><code>SymbolsInfo</code></td>
+<td>Состав портфеля, позиции и их параметры</td>
+</tr>
+<tr>
+<td><code>PlanningSymbolInfo</code></td>
+<td>Плановые даты, погашения и аналитические показатели инструментов</td>
+</tr>
+</tbody>
+</table>
+<p>Торговое ядро может сохранять и другие расчётные таблицы. Для веб-мониторинга основными источниками служат три таблицы выше.</p>
+<p>Одну базу можно использовать для нескольких счетов. При чтении учитываются идентификаторы счёта и источника, а не только название INI.</p>
+<a id="web"></a>
+<h2>Работа с веб-интерфейсом</h2>
+<h3>Точки входа</h3>
+<table>
+<thead>
+<tr>
+<th>Команда</th>
+<th>Начальный раздел</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>python -B start_dashboard.py</code></td>
+<td>Главная страница</td>
+</tr>
+<tr>
+<td><code>python -B start_dashboard.py --view monitor</code></td>
+<td>Мониторинг портфеля</td>
+</tr>
+<tr>
+<td><code>python -B start_dashboard.py --view autostart</code></td>
+<td>Автозапуски</td>
+</tr>
+<tr>
+<td><code>python -B start_dashboard.py --view about</code></td>
+<td>О программе и руководство по эксплуатации</td>
+</tr>
+<tr>
+<td><code>python -B start_autostart.py</code></td>
+<td>Автозапуски</td>
+</tr>
+<tr>
+<td><code>python -B start_config_editor.py</code></td>
+<td>Самостоятельный редактор</td>
+</tr>
+</tbody>
+</table>
+<p>С главной страницы можно перейти в мониторинг портфеля, редактор конфигураций, автозапуски, логи и раздел «О программе». В разделе «О программе» доступны ссылки на мобильное приложение для Android и руководство по эксплуатации из <code>README_GITHUB.md</code>.</p>
+<h3>Параметры запуска</h3>
+<table>
+<thead>
+<tr>
+<th>Параметр</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--project PATH</code></td>
+<td>Корень проекта с <code>config_demo.ini</code> и папкой <code>data</code></td>
+</tr>
+<tr>
+<td><code>--port NUMBER</code></td>
+<td>Локальный порт; <code>0</code> означает автоматический выбор свободного</td>
+</tr>
+<tr>
+<td><code>--no-browser</code></td>
+<td>Не открывать браузер автоматически</td>
+</tr>
+<tr>
+<td><code>--view home</code></td>
+<td>Начать с главной страницы единой формы</td>
+</tr>
+<tr>
+<td><code>--view monitor</code></td>
+<td>Начать с мониторинга</td>
+</tr>
+<tr>
+<td><code>--view autostart</code></td>
+<td>Начать с автозапусков</td>
+</tr>
+<tr>
+<td><code>--view about</code></td>
+<td>Открыть раздел «О программе»</td>
+</tr>
+</tbody>
+</table>
+<p>Пример с фиксированным портом:</p>
+<pre><code class="language-bash">python -B start_dashboard.py --port 8765 --no-browser
+</code></pre>
+<p>Пример для проекта в другой папке:</p>
+<pre><code class="language-bash">python -B start_dashboard.py --project /path/to/kimkarus_ea_monitor_py --no-browser
+</code></pre>
+<p>В Windows передайте свой абсолютный путь в кавычках. Файлы <code>dashboard.html</code>, <code>autostart.html</code> и <code>README_GITHUB.md</code> должны находиться рядом со <code>start_dashboard.py</code>.</p>
+<p>Сервер слушает <code>127.0.0.1</code>. Для доступа используется персональная ссылка с токеном текущего запуска. Перенос ссылки между устройствами не превращает локальную форму в сетевой сервис. После перезапуска приложения используйте новую ссылку из консоли.</p>
+<p>Окно процесса веб-сервера оставляйте открытым. Для его завершения нажмите <code>Ctrl+C</code>. Закрытие вкладки браузера само по себе не завершает сервер.</p>
+<a id="support"></a>
+<h2>Чат технической поддержки</h2>
+<p>На главной странице, в мониторинге, редакторе и автозапусках доступен встроенный чат Pyrus. Он также подключён в самостоятельном редакторе. Положение и оформление определяются настройками виджета; скрипт загружается асинхронно.</p>
+<p>Для обращения откройте чат и введите сообщение. Для работы виджета браузеру нужен доступ к Pyrus. После отправки вопроса переписка ведётся в интерфейсе чата.</p>
+<a id="editor"></a>
+<h2>Редактор конфигураций</h2>
+<p>Редактор работает с INI в папках <code>monitoring</code> и <code>trading</code>. Запуск редактора не подключается к брокеру и не исполняет торговые сценарии.</p>
+<h3>Выбор и создание файла</h3>
+<ol>
+<li>Выберите папку профилей.</li>
+<li>Найдите файл по имени, названию портфеля, логину или брокеру.</li>
+<li>При необходимости используйте фильтры брокера и активности.</li>
+<li>Откройте профиль либо создайте новый на основе <code>config_demo.ini</code>.</li>
+</ol>
+<p>При создании нового профиля редактор очищает ключи и идентификаторы, выключает профиль и удаляет шаблонную секцию базы с заполнителями. Файл появляется на диске после сохранения.</p>
+<p>«Дублировать» создаёт черновик с новым именем, сохраняет настройки исходного профиля и устанавливает <code>active = 0</code>. Проверьте реквизиты копии перед включением.</p>
+<h3>Разделы формы</h3>
+<table>
+<thead>
+<tr>
+<th>Раздел</th>
+<th>Что настраивается</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Профиль</td>
+<td>Брокер, API, счёт, активность, ключи</td>
+</tr>
+<tr>
+<td>Стратегия и риск</td>
+<td>Доли, размер позиции, фильтры, цена, купон, сроки</td>
+</tr>
+<tr>
+<td>Сроки и этапы</td>
+<td>Интервалы, проценты, приоритеты, расширенные параметры</td>
+</tr>
+<tr>
+<td>Сделки и расписание</td>
+<td>Объёмы операций, условия выхода, часы</td>
+</tr>
+<tr>
+<td>Ликвидность</td>
+<td>Фонд, сценарии, обеспечение, расписание</td>
+</tr>
+<tr>
+<td>Хранение</td>
+<td>Тип базы, реквизиты и связанные параметры</td>
+</tr>
+<tr>
+<td>Дополнительно</td>
+<td>Поля существующего INI, не вынесенные в основные группы</td>
+</tr>
+<tr>
+<td>INI</td>
+<td>Редактирование исходного текста</td>
+</tr>
+</tbody>
+</table>
+<p>Числовые параметры представлены полями и ползунками; флаги — переключателями. Секреты скрыты и доступны через кнопку показа.</p>
+<p>Поля, отсутствующие в файле, отображаются со значением по умолчанию и не записываются автоматически. Кнопка сброса поля удаляет конкретный ключ и возвращает использование значения из кода. Для обязательного ключа такая операция требует восстановления значения перед сохранением.</p>
+<h3>Сохранение</h3>
+<ol>
+<li>Измените поля.</li>
+<li>Нажмите «Проверить».</li>
+<li>Нажмите «Сохранить» либо <code>Ctrl+S</code>.</li>
+<li>Просмотрите сравнение.</li>
+<li>Подтвердите сохранение изменений.</li>
+</ol>
+<p>Секреты в сравнении скрыты. При обычном редактировании сохраняются комментарии и неизвестные поля. Предыдущая версия существующего файла попадает в резервные копии:</p>
+<pre><code class="language-text">data/configs/editor_backups/monitoring/
+data/configs/editor_backups/trading/
+</code></pre>
+<p>Если файл изменён другой программой после загрузки в форму, редактор сообщает о конфликте и сохраняет черновик для дальнейшей работы. Повторное чтение позволяет получить актуальную версию.</p>
+<p>Для выключения загрузки подготовленных данных снимите соответствующий переключатель в форме: редактор удаляет ключ <code>enable_download_data_exchange</code>. При ручном редактировании для выключения также удаляйте этот ключ, а не записывайте строку <code>False</code>.</p>
+<p>Изменение INI применяется при следующем чтении настроек соответствующим процессом. Уже работающий торговый процесс может продолжать использовать загруженные ранее значения.</p>
+<a id="monitoring"></a>
+<h2>Мониторинг одного и нескольких счетов</h2>
+<h3>Сбор данных и просмотр</h3>
+<table>
+<thead>
+<tr>
+<th>Действие</th>
+<th>Что происходит</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>start_monitoring.py</code></td>
+<td>Подключается к брокерам, обрабатывает активные профили <code>monitoring</code>, сохраняет состояние по настройкам базы</td>
+</tr>
+<tr>
+<td>Раздел «Мониторинг портфеля»</td>
+<td>Читает уже сохранённые данные из базы выбранного профиля</td>
+</tr>
+<tr>
+<td>Кнопка обновления в дашборде</td>
+<td>Повторно читает базу</td>
+</tr>
+</tbody>
+</table>
+<p>Веб-просмотр не заменяет сборщик. «Текущий снимок» — последнее записанное состояние, а не непрерывный поток брокерских котировок.</p>
+<h3>Подключение</h3>
+<ol>
+<li>Откройте мониторинг портфеля.</li>
+<li>Выберите папку «Мониторинг», «Торговля» либо смешанный режим.</li>
+<li>Выберите один INI или все доступные конфигурации выбранной области.</li>
+<li>Подключитесь к базе.</li>
+</ol>
+<p>Для подключения нужны корректная секция <code>[database]</code> и <code>client.login</code>. Профили без базы видны в списке, но не используются как источники данных.</p>
+<p>После подключения панель выбора сворачивается в компактную кнопку. Её можно раскрыть, чтобы изменить область или конфигурацию.</p>
+<p>Список счетов ограничен логинами, указанными в выбранных INI. Счета с посторонними логинами из той же базы в каталог не добавляются. Если один логин соответствует нескольким вариантам счёта, учитываются дополнительные идентификаторы; валютные варианты показываются отдельно.</p>
+<h3>Один профиль, все профили и смешанный режим</h3>
+<ul>
+<li><strong>Один INI:</strong> работа с конкретным источником.</li>
+<li><strong>Все конфигурации:</strong> загрузка подходящих источников выбранной папки с общим представлением счетов.</li>
+<li><strong>Смешанный режим:</strong> выбор профилей из обеих папок.</li>
+</ul>
+<p>В общем представлении доступны:</p>
+<ul>
+<li>фильтр и поиск счетов;</li>
+<li>устойчивый цвет каждого счёта;</li>
+<li>отдельные показатели счетов;</li>
+<li>сводные показатели выбранных счетов;</li>
+<li>таблицы с группировкой по счетам;</li>
+<li>линии стоимости и составные столбики плановых поступлений;</li>
+<li>числовые подсказки на графиках при наведении курсора.</li>
+</ul>
+<p>Единственный ключ счёта — <code>login</code>: отличия <code>client_id</code>, сервера, компании, типа и валюты не создают отдельные пункты каталога; история сохраняется. На одну дату используется один вариант хранения, без повторного учёта позиций. Разные валюты показываются раздельно; валютная конвертация для объединения итогов не выполняется.</p>
+<p>Переключение между уже загруженными режимами и профилями в текущем сеансе мониторинга сохраняет данные и выбранное состояние. Для принудительного перечитывания используйте обновление. После перезагрузки страницы данные загружаются заново.</p>
+<h3>Историческое состояние</h3>
+<ol>
+<li>Переключитесь в историю.</li>
+<li>Выберите сохранённые дату и время либо используйте календарь.</li>
+<li>Для общего портфеля задайте общий момент просмотра.</li>
+</ol>
+<p>Исторический снимок использует состояние не позднее выбранного момента. Календарный выбор находит последнее доступное состояние до конца указанного дня. Для разных таблиц фактические моменты записи могут отличаться: интерфейс показывает даты источников и предупреждения.</p>
+<p>При просмотре прошлого будущие позиции не подставляются вместо отсутствующих исторических данных. Если подходящего снимка таблицы нет, соответствующий блок остаётся пустым.</p>
+<h3>Таблицы и графики</h3>
+<p>В дашборде доступны состояние счёта, позиции, плановые погашения / поступления и история. Таблицы поддерживают поиск, сортировку и постраничный просмотр. Подсказки графиков показывают дату и значение; для нескольких счетов сохраняется цветовая связь с выбранными счетами.</p>
+<p>При старом снимке ориентируйтесь на показанную дату записи. Данные появятся после успешной работы сборщика с теми же реквизитами счёта и базы.</p>
+<a id="cli"></a>
+<h2>Запуск сценариев из командной строки</h2>
+<h3>Рабочая папка</h3>
+<p>Брокерские скрипты используют относительные пути <code>./data/...</code>. Запускайте их из корня проекта. В IDE задайте этот каталог как <strong>Working directory</strong>.</p>
+<h3>Основные команды</h3>
+<table>
+<thead>
+<tr>
+<th>Задача</th>
+<th>Команда</th>
+<th>Папка INI</th>
+<th>Выбор одного INI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Сбор мониторинга</td>
+<td><code>python -B start_monitoring.py</code></td>
+<td><code>monitoring</code></td>
+<td>Через фильтры; отдельный путь INI не применяется</td>
+</tr>
+<tr>
+<td>Расчёт</td>
+<td><code>python -B start_calculate.py</code></td>
+<td><code>monitoring</code>; при совсем пустом каталоге — <code>trading</code></td>
+<td>Через фильтры</td>
+</tr>
+<tr>
+<td>Торговля</td>
+<td><code>python -B start_trading.py</code></td>
+<td><code>trading</code></td>
+<td>Да</td>
+</tr>
+<tr>
+<td>Ребалансировка</td>
+<td><code>python -B start_rebalancing.py</code></td>
+<td><code>trading</code></td>
+<td>Да</td>
+</tr>
+<tr>
+<td>Деградация</td>
+<td><code>python -B start_degradating.py</code></td>
+<td><code>trading</code></td>
+<td>Да</td>
+</tr>
+<tr>
+<td>Фонд ликвидности</td>
+<td><code>python -B start_liquidity_fund.py</code></td>
+<td><code>trading</code></td>
+<td>Через фильтры</td>
+</tr>
+<tr>
+<td>Аналитика</td>
+<td><code>python -B start_analytics.py 0 &quot;&quot; &quot;&quot; &quot;&quot;</code></td>
+<td><code>trading</code></td>
+<td>Да</td>
+</tr>
+</tbody>
+</table>
+<p>Для расчёта переход к папке <code>trading</code> зависит именно от пустоты <code>monitoring</code>: наличие в ней выключенного профиля или другого файла уже означает, что каталог не пуст.</p>
+<h3>Позиционные аргументы</h3>
+<p>Общий порядок:</p>
+<pre><code class="language-text">python script.py ACTION BROKER CLIENT_ID LOGIN [CONFIG_PATH]
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Аргумент</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ACTION</code></td>
+<td>Код сценария; отдельные скрипты закрепляют собственный код</td>
+</tr>
+<tr>
+<td><code>BROKER</code></td>
+<td>Фильтр по <code>client.broker_name</code></td>
+</tr>
+<tr>
+<td><code>CLIENT_ID</code></td>
+<td>Фильтр по <code>client.client_id</code></td>
+</tr>
+<tr>
+<td><code>LOGIN</code></td>
+<td>Фильтр по <code>client.login</code></td>
+</tr>
+<tr>
+<td><code>CONFIG_PATH</code></td>
+<td>Один INI для скриптов, поддерживающих этот выбор</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Скрипт</th>
+<th style="text-align:right">Код</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>start_monitoring.py</code></td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td><code>start_trading.py</code></td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td><code>start_liquidity_fund.py</code></td>
+<td style="text-align:right">2</td>
+</tr>
+<tr>
+<td><code>start_calculate.py</code></td>
+<td style="text-align:right">3</td>
+</tr>
+<tr>
+<td><code>start_rebalancing.py</code></td>
+<td style="text-align:right">5</td>
+</tr>
+<tr>
+<td><code>start_degradating.py</code></td>
+<td style="text-align:right">6</td>
+</tr>
+<tr>
+<td><code>start_analytics.py</code></td>
+<td style="text-align:right">0; скрипт запускает отдельный класс аналитики</td>
+</tr>
+</tbody>
+</table>
+<p>Пустые фильтры сохраняйте как отдельные пустые аргументы. Не сдвигайте логин на позицию клиента. Веб-менеджер автозапусков формирует этот список автоматически.</p>
+<p>Примеры для Bash или <code>cmd.exe</code>, сохраняющих показанные пустые аргументы:</p>
+<pre><code class="language-bash"># Мониторинг профилей конкретного брокера
+python -B start_monitoring.py 0 Tinkoff
+
+# Мониторинг по клиенту и логину
+python -B start_monitoring.py 0 Tinkoff client_001 ACCOUNT_LOGIN
+
+# Один торговый INI
+python -B start_trading.py 1 &quot;&quot; &quot;&quot; &quot;&quot; &quot;./data/configs/accounts/trading/account_001.ini&quot;
+
+# Ребалансировка одного INI
+python -B start_rebalancing.py 5 &quot;&quot; &quot;&quot; &quot;&quot; &quot;./data/configs/accounts/trading/account_001.ini&quot;
+
+# Аналитика с сохранением всех позиций аргументов
+python -B start_analytics.py 0 &quot;&quot; &quot;&quot; &quot;&quot;
+</code></pre>
+<p>Некоторые версии PowerShell иначе передают пустые аргументы внешним программам. Для такого запуска используйте форму автозапусков либо сформируйте аргументы средствами Python:</p>
+<pre><code class="language-bash">python -c &quot;import subprocess,sys; raise SystemExit(subprocess.call([sys.executable,'-B','start_trading.py','1','','','','./data/configs/accounts/trading/account_001.ini']))&quot;
+</code></pre>
+<p>Путь отдельного INI задавайте <strong>буквально</strong> как <code>./data/configs/accounts/trading/имя.ini</code> со слешами <code>/</code>. В поддерживающих этот параметр скриптах путь сравнивается с формируемой относительной строкой. Абсолютный путь не является равнозначной заменой.</p>
+<p>Для <code>start_analytics.py</code> используйте полный показанный набор позиционных аргументов или запуск через менеджер автозапусков.</p>
+<h3>Интерактивные варианты программы</h3>
+<table>
+<thead>
+<tr>
+<th>Файл</th>
+<th>Вариант запуска</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>start_algobond.py</code></td>
+<td><code>full</code></td>
+</tr>
+<tr>
+<td><code>start_algobond_full.py</code></td>
+<td><code>full</code></td>
+</tr>
+<tr>
+<td><code>start_algobond_demo.py</code></td>
+<td><code>demo</code></td>
+</tr>
+<tr>
+<td><code>start_algobond_ofz.py</code></td>
+<td><code>ofz</code></td>
+</tr>
+<tr>
+<td><code>start_algobond_trial.py</code></td>
+<td><code>trial</code></td>
+</tr>
+<tr>
+<td><code>start_algobond_trial_180.py</code></td>
+<td><code>trial_180</code></td>
+</tr>
+<tr>
+<td><code>start_algobond_android.py</code></td>
+<td><code>android</code></td>
+</tr>
+</tbody>
+</table>
+<p>Пример:</p>
+<pre><code class="language-bash">python -B start_algobond_full.py
+</code></pre>
+<p>Эти точки входа используют торговые профили, проверяют соответствие ключа варианту запуска и выводят интерактивные вопросы. Отвечайте на них в терминале. Для автоматического выполнения по расписанию используйте отдельные сценарии из таблицы выше.</p>
+<p><code>start_algobond_demo.py</code> выполняет предусмотренную им демонстрационную последовательность с расчётом и выводом этапов. Этот файл — самостоятельная точка входа, а не флаг песочницы для остальных торговых скриптов.</p>
+<p><code>start_testing.py</code> предназначен для специальной проверки брокерских данных / стакана. Автоматические тесты проекта запускаются отдельно через <code>unittest</code>.</p>
+<a id="autostart"></a>
+<h2>Настройка автозапусков</h2>
+<h3>Открытие раздела</h3>
+<p>Перейдите в «Автозапуски» из главной формы либо выполните:</p>
+<pre><code class="language-bash">python -B start_autostart.py
+</code></pre>
+<p>Доступны семь действий: мониторинг, торговля, ребалансировка, деградация, фонд ликвидности, расчёт и аналитика. У каждого действия показаны назначение и исходный скрипт.</p>
+<h3>Создание конфигурации запуска</h3>
+<p>В Windows менеджер проверяет сборки <code>start_algobond_demo.exe</code>, <code>start_algobond_full.exe</code>, <code>start_algobond_ofz.exe</code>, <code>start_algobond_trial.exe</code>, <code>start_algobond_trial_180.exe</code> в корне рядом с <code>data</code>. Единственный EXE имеет приоритет над отдельным Python-сценарием; при нескольких сборках выберите вариант в форме. При отсутствии EXE режим «Авто» сохраняет запуск отдельного сценария Python.</p>
+<p>Только DEMO открывается в консоли с вопросами и использует действие «Запуск программы целиком» без первого аргумента-кода. Остальные четыре сборки получают штатный код выбранного действия. Для всех этих EXE используются INI из <code>trading</code>. Analytics выполняется отдельным Python-сценарием. Самому менеджеру расписаний и журналов по-прежнему нужен Python.</p>
+<ol>
+<li>Задайте название.</li>
+<li>Выберите действие.</li>
+<li>Укажите все подходящие активные INI или один файл, если сценарий его поддерживает.</li>
+<li>При необходимости заполните фильтры брокера, клиента и логина.</li>
+<li>Выберите Windows или Linux.</li>
+<li>Укажите абсолютный путь проекта на целевом компьютере.</li>
+<li>Укажите абсолютный путь Python виртуального окружения этого проекта.</li>
+<li>Настройте расписание.</li>
+<li>Выполните предпросмотр и проверьте команду, рабочую папку и перечень профилей.</li>
+<li>Сохраните конфигурацию.</li>
+<li>Установите задание ОС либо скачайте пакет управления.</li>
+</ol>
+<p><strong>Сохранение описания не устанавливает задание и не запускает процесс.</strong> Установка и ручной запуск выполняются отдельными командами.</p>
+<p>Выбор одного INI не делает неактивный профиль активным. Для другой машины показанный в предпросмотре перечень относится к текущей копии проекта; при выполнении используются INI на целевой машине.</p>
+<h3>Виды расписания</h3>
+<table>
+<thead>
+<tr>
+<th>Вид</th>
+<th>Windows</th>
+<th>Linux</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Интервал</td>
+<td>Повторение с выбранным интервалом; первый запуск примерно через минуту после установки</td>
+<td>Выражение cron с привязкой к часовым / суточным границам</td>
+</tr>
+<tr>
+<td>Ежедневно</td>
+<td>В выбранное время</td>
+<td>В выбранное время</td>
+</tr>
+<tr>
+<td>Дни недели</td>
+<td>По выбранным дням</td>
+<td>По выбранным дням</td>
+</tr>
+<tr>
+<td>При запуске</td>
+<td>При входе конкретного пользователя в Windows</td>
+<td><code>@reboot</code> при запуске cron</td>
+</tr>
+<tr>
+<td>Пять полей cron</td>
+<td>—</td>
+<td>Собственное выражение времени без команды</td>
+</tr>
+</tbody>
+</table>
+<p>Расписание ОС использует местное время целевой машины. Оно действует совместно с внутренними часовыми ограничениями стратегии.</p>
+<p>Примеры cron:</p>
+<table>
+<thead>
+<tr>
+<th>Выражение</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>*/15 * * * *</code></td>
+<td>Каждые 15 минут</td>
+</tr>
+<tr>
+<td><code>0 10 * * 1-5</code></td>
+<td>В 10:00 с понедельника по пятницу</td>
+</tr>
+<tr>
+<td><code>0 */2 * * *</code></td>
+<td>В начале каждого второго часа</td>
+</tr>
+<tr>
+<td><code>0 0 * * *</code></td>
+<td>В полночь</td>
+</tr>
+</tbody>
+</table>
+<h3>Windows Task Scheduler</h3>
+<p>Локальная установка выполняется от учётной записи веб-приложения с параметрами <code>Interactive</code> и <code>Limited</code>. Пользователь должен быть вошедшим в Windows. Пароли не сохраняются; повышение прав автоматически не выполняется.</p>
+<p>Если установка из формы недоступна, скачайте ZIP, распакуйте его и выполните в PowerShell на целевом компьютере:</p>
+<pre><code class="language-powershell">.\install.ps1
+.\status.ps1
+</code></pre>
+<p>Используйте учётную запись, которой разрешена работа с планировщиком и доступ к папке проекта. Если политика не разрешает выполнение <code>.ps1</code>, можно вызвать Python-менеджер непосредственно, используя параметры из пакета.</p>
+<h3>cron Linux</h3>
+<p>На целевой машине должны существовать проект, его INI и виртуальное окружение. Установленный cron должен разрешать работу с <code>crontab</code> текущему пользователю.</p>
+<p>После распаковки пакета:</p>
+<pre><code class="language-bash">sh install.sh
+sh status.sh
+</code></pre>
+<p>Установщик сохраняет резервную копию текущего crontab и изменяет только свой помеченный блок. Отдельные задания других приложений сохраняются. Для режима <code>@reboot</code> требуется поддержка этого обозначения используемой реализацией cron.</p>
+<p>Задание использует явно указанный Python и рабочую папку проекта. Дополнительные переменные окружения, необходимые конкретному подключению, задаются в среде соответствующего пользователя ОС.</p>
+<h3>Состав пакета</h3>
+<table>
+<thead>
+<tr>
+<th>Файл / команда</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>job.json</code></td>
+<td>Параметры конкретного запуска</td>
+</tr>
+<tr>
+<td><code>algobond_autostart.py</code></td>
+<td>Менеджер выполнения и регистрации</td>
+</tr>
+<tr>
+<td><code>README.txt</code></td>
+<td>Назначение, параметры, команда и инструкция задания</td>
+</tr>
+<tr>
+<td><code>install.ps1</code> / <code>install.sh</code></td>
+<td>Импорт описания и установка / обновление задания</td>
+</tr>
+<tr>
+<td><code>run.ps1</code> / <code>run.sh</code></td>
+<td>Ручной запуск без обязательной установки расписания</td>
+</tr>
+<tr>
+<td><code>status.ps1</code> / <code>status.sh</code></td>
+<td>Проверка задания ОС</td>
+</tr>
+<tr>
+<td><code>disable.ps1</code> / <code>disable.sh</code></td>
+<td>Отключение плановых запусков</td>
+</tr>
+<tr>
+<td><code>enable.ps1</code> / <code>enable.sh</code></td>
+<td>Включение установленного задания</td>
+</tr>
+<tr>
+<td><code>remove.ps1</code> / <code>remove.sh</code></td>
+<td>Удаление своего задания ОС</td>
+</tr>
+</tbody>
+</table>
+<p>Рабочие брокерские INI и их токены в ZIP задания не включаются. Они должны находиться в целевом проекте.</p>
+<h3>Ручной запуск, изменение и удаление</h3>
+<p>На локальной карточке нажмите «Запустить сейчас» и подтвердите параметры. Процесс выполняется отдельно; результат, время и журнал отображаются в карточке. На другом компьютере используйте <code>run</code> из пакета.</p>
+<p>Ручной запуск разрешён при отключённом расписании. Плановый запуск отключённого задания пропускается. Один экземпляр задания не запускается поверх предыдущего; разные задания имеют отдельные блокировки.</p>
+<p>После изменения расписания или пути Python повторите установку / обновление. Для удалённой машины передайте актуальный пакет и выполните <code>install</code>. ОС и папка проекта закреплены за созданным заданием; для другого места выполнения создайте новое.</p>
+<p>«Отключить» запрещает последующие плановые запуски. «Удалить» удаляет своё задание планировщика и переносит описание в архив. Обе операции оставляют уже работающий процесс до его завершения.</p>
+<p>Если системная операция отклонена, форма показывает результат и предлагает пакет. При неудачном удалении остаётся карточка для завершения очистки. Для удалённого компьютера выполните <code>remove</code> там, затем подтвердите очистку карточки. Изменение в локальной форме само по себе не управляет чужим компьютером.</p>
+<p>После установки расписание работает независимо от открытой веб-формы. Завершение <code>start_dashboard.py</code> не удаляет задания ОС.</p>
+<h3>CLI менеджера заданий</h3>
+<p>Замените <code>JOB_ID</code> идентификатором из карточки или результата <code>list</code>:</p>
+<pre><code class="language-bash">python -B algobond_autostart.py list
+python -B algobond_autostart.py inspect --id JOB_ID
+python -B algobond_autostart.py run --id JOB_ID --manual
+python -B algobond_autostart.py install --id JOB_ID
+python -B algobond_autostart.py disable --id JOB_ID
+python -B algobond_autostart.py enable --id JOB_ID
+python -B algobond_autostart.py export --id JOB_ID --output job.zip
+python -B algobond_autostart.py remove --id JOB_ID
+</code></pre>
+<p>Импорт скачанного описания:</p>
+<pre><code class="language-bash">python -B algobond_autostart.py import-definition --file /path/to/job.json --replace
+python -B algobond_autostart.py install --id JOB_ID
+</code></pre>
+<p>При работе с другой папкой задайте <code>--project</code>. Установка разрешает плановые пуски. Повторный импорт с <code>--replace</code> сохраняет предыдущую версию описания в резервную копию.</p>
+<a id="data"></a>
+<h2>Файлы инструментов и результатов</h2>
+<h3>Расчёты и биржевые данные</h3>
+<p>Расчётные данные MOEX хранятся в <code>data/calculations/MOEX/</code>. Имя дневного расчётного файла формируется как <code>df_ДЕНЬ-МЕСЯЦ-ГОД.csv</code>. Биржевые справочники сохраняются в <code>data/MOEX/</code>, в том числе <code>symbols_reference.csv</code>.</p>
+<p>Источники зависят от сценария: используются MOEX ISS, брокерские API и предусмотренный кодом сервис подготовленных данных. Для загрузки подготовленных данных через соответствующий сервис используется ключ программы.</p>
+<p>Для включения предусмотренной загрузки задаётся <code>enable_download_data_exchange</code>. Для выключения удалите ключ из INI либо выключите переключатель в редакторе.</p>
+<h3>Списки инструментов</h3>
+<table>
+<thead>
+<tr>
+<th>Файл</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>data/parametres/symbols_excepltion.txt</code></td>
+<td>Исключения из подбора</td>
+</tr>
+<tr>
+<td><code>data/parametres/symbols_whitelist.txt</code></td>
+<td>Общий белый список</td>
+</tr>
+<tr>
+<td><code>data/parametres/symbols_default.txt</code></td>
+<td>Служебный список дефолтных инструментов</td>
+</tr>
+<tr>
+<td><code>data/parametres/symbols_low_raiting.txt</code></td>
+<td>Служебный список низкого рейтинга</td>
+</tr>
+<tr>
+<td><code>data/parametres/symbols_degradating.txt</code></td>
+<td>Общий список деградирующих инструментов</td>
+</tr>
+<tr>
+<td><code>data/parametres/LOGIN/</code></td>
+<td>Списки и служебное состояние конкретного логина</td>
+</tr>
+</tbody>
+</table>
+<p>Для текстового списка используйте одну запись в строке либо разделитель <code>|</code>. Поиск учитывает тикер и названия инструмента, в том числе совпадение по части строки. Например, запись с коротким общим фрагментом может соответствовать нескольким инструментам.</p>
+<p>Общий белый список включается параметром <code>enable_symbols_whitelist</code>. Для варианта с персональным списком задайте оба флага согласованно:</p>
+<pre><code class="language-ini">enable_symbols_whitelist = True
+enable_symbols_whitelist_for_login = True
+</code></pre>
+<p>В таком режиме файл белого списка размещается в <code>data/parametres/LOGIN/symbols_whitelist.txt</code>. Для общего списка задайте <code>enable_symbols_whitelist = True</code> и не добавляйте ключ персонального списка.</p>
+<p>Параметр <code>enable_global_path_symbols_degradating = True</code> переключает путь деградирующих инструментов с персональной папки логина на общий <code>data/parametres/</code>.</p>
+<h3>Данные автозапусков</h3>
+<table>
+<thead>
+<tr>
+<th>Каталог</th>
+<th>Содержимое</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>data/autostart/jobs/</code></td>
+<td>Активные описания заданий</td>
+</tr>
+<tr>
+<td><code>data/autostart/backups/</code></td>
+<td>Предыдущие версии JSON и копии crontab</td>
+</tr>
+<tr>
+<td><code>data/autostart/locks/</code></td>
+<td>Межпроцессные блокировки</td>
+</tr>
+<tr>
+<td><code>data/autostart/status/</code></td>
+<td>Последний статус, PID, время и результат</td>
+</tr>
+<tr>
+<td><code>data/autostart/logs/</code></td>
+<td>Вывод запускаемых процессов</td>
+</tr>
+<tr>
+<td><code>data/autostart/deleted/</code></td>
+<td>Архив удалённых описаний</td>
+</tr>
+</tbody>
+</table>
+<p>Менеджер записывает описания атомарно и проверяет контрольную сумму. Для редактирования используйте форму или импорт пакета, сохраняя целостность описания.</p>
+<a id="logs"></a>
+<h2>Логи AlgoBond</h2>
+<p>В секции <code>[settings]</code> профиля или во вкладке «Логи» редактора доступны три параметра.</p>
+<ul>
+<li><code>enable_logs_errors = True</code> записывает предупреждения и ошибки в <code>./logs/errors.log</code>.</li>
+<li><code>enable_logs_debugs = False</code> по умолчанию. Значение <code>True</code> включает диагностические записи в <code>./logs/debug.log</code> и вывод в консоль.</li>
+<li><code>enable_logs_transactions = False</code> по умолчанию. Значение <code>True</code> включает журнал отправки рыночных и лимитных заявок в <code>./logs/transactions.log</code>.</li>
+</ul>
+<p>Через раздел «Логи» на главной странице UI можно открыть последние записи по каждому типу. Пути отсчитываются от папки AlgoBond. Файлы создаются при первой записи и дополняются в UTF-8. Каждый счёт использует параметры своего профиля.</p>
+<a id="diagnostics"></a>
+<h2>Диагностика и типовые ситуации</h2>
+<h3>Проверка окружения</h3>
+<pre><code class="language-bash">python --version
+python -m pip --version
+python -m pip check
+</code></pre>
+<p>Пути Python и pip должны относиться к одному окружению проекта. При работе из IDE выберите <code>.venv</code> как интерпретатор и корень проекта как рабочую папку.</p>
+<h3>Диагностика импортов</h3>
+<pre><code class="language-bash">python -B diagnose_monitoring.py
+</code></pre>
+<p>Скрипт проверяет импорты в отдельных процессах и сохраняет отчёт в <code>data/diagnostics/</code>. Подключение к брокеру при этой проверке не выполняется.</p>
+<p>Дополнительная проверка базы конкретного профиля:</p>
+<pre><code class="language-bash">python -B diagnose_monitoring.py --connect --mode monitoring --config account_001.ini
+</code></pre>
+<p>Для торгового профиля используйте <code>--mode trading</code>. Указывайте имя INI явно. Дополнительные параметры: <code>--project</code> для корня проекта и <code>--output</code> для файла отчёта.</p>
+<h3>Частые вопросы</h3>
+<table>
+<thead>
+<tr>
+<th>Ситуация</th>
+<th>Что проверить</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Веб-форма не открылась автоматически</td>
+<td>Используйте полную ссылку из консоли; проверьте, что процесс сервера работает</td>
+</tr>
+<tr>
+<td>Запросы формы отклоняются после перезапуска</td>
+<td>Откройте актуальную ссылку с новым токеном</td>
+</tr>
+<tr>
+<td>Не найден <code>config_demo.ini</code></td>
+<td>Запустите форму из проекта или задайте правильный <code>--project</code></td>
+</tr>
+<tr>
+<td>Скрипт не видит папку <code>data</code></td>
+<td>Проверьте рабочую папку терминала / IDE</td>
+</tr>
+<tr>
+<td>Профиль не участвует в брокерском сценарии</td>
+<td>Проверьте папку, <code>active</code>, фильтры аргументов, реквизиты и условия выбранного варианта запуска</td>
+</tr>
+<tr>
+<td>Мониторинг показывает пустой список</td>
+<td>Сопоставьте <code>client.login</code> с сохранёнными данными и проверьте выбранную базу</td>
+</tr>
+<tr>
+<td>Нет истории</td>
+<td>Выполните сборщик с включённой базой; просмотр сам историю не создаёт</td>
+</tr>
+<tr>
+<td>Нет файла SQLite</td>
+<td>Убедитесь, что запись выполнялась в <code>data/algobond.db</code> этого проекта</td>
+</tr>
+<tr>
+<td>Профиль без базы нельзя выбрать для просмотра</td>
+<td>Заполните <code>[database]</code> и сохраните профиль</td>
+</tr>
+<tr>
+<td>Часть исторических таблиц пуста</td>
+<td>Проверьте наличие снимков этих таблиц не позднее выбранного момента</td>
+</tr>
+<tr>
+<td>Показаны разные даты источников</td>
+<td>Сбор данных записывал таблицы в разные моменты; используйте указанные даты при интерпретации снимка</td>
+</tr>
+<tr>
+<td>Изменения INI ещё не повлияли на обработку</td>
+<td>Выполните следующий запуск с повторным чтением конфигурации</td>
+</tr>
+<tr>
+<td>Конфликт сохранения</td>
+<td>Перечитайте файл, изменённый вне редактора, и сопоставьте с черновиком</td>
+</tr>
+<tr>
+<td>После сохранения задания запусков нет</td>
+<td>Установите задание ОС; для другой машины выполните <code>install</code> на ней</td>
+</tr>
+<tr>
+<td>Windows-задача не срабатывает после выхода пользователя</td>
+<td>Используемый режим требует вошедшего пользователя</td>
+</tr>
+<tr>
+<td>Установка расписания отклонена</td>
+<td>Используйте показанную инструкцию и пакет под разрешённой учётной записью</td>
+</tr>
+<tr>
+<td>Задание запускается, но операции не выполняются</td>
+<td>Проверьте журнал, активность профилей, торговые часы, флаги и условия стратегии</td>
+</tr>
+<tr>
+<td>Изменилось расписание в форме</td>
+<td>Повторите «Установить / обновить» либо выполните актуальный пакет</td>
+</tr>
+</tbody>
+</table>
+<p>Журнал конкретного регламентного запуска доступен в карточке и в <code>data/autostart/logs/</code>. При прямом запуске сценария его сообщения выводятся в терминал.</p>
+<a id="tests"></a>
+<h2>Автоматические проверки</h2>
+<p>Из корня проекта:</p>
+<pre><code class="language-bash">python -B -m unittest discover -s tests -v
+</code></pre>
+<p>Проверки редактора, чтения снимков и менеджера заданий используют временные искусственные профили, базы и исполняемые сценарии. Операции системных планировщиков в тестах менеджера подменяются.</p>
+<p>Для JavaScript-проверок требуется Node.js:</p>
+<pre><code class="language-bash">node tests/check_dashboard.js
+node tests/check_monitoring_state.js
+node tests/check_multi_account.js
+node tests/check_autostart_ui.js
+</code></pre>
+<p>Они проверяют синтаксис, преобразование данных и поведение кода страниц на модели DOM. Для пользовательской проверки внешнего вида откройте обычную веб-форму в браузере.</p>
+<a id="backup"></a>
+<h2>Хранение настроек и резервное копирование</h2>
+<p>Рабочие INI содержат реквизиты счёта и токены. Резервные копии редактора содержат те же значения. Журналы могут включать вывод брокерских библиотек и данные операций.</p>
+<p>Для публичного репозитория используйте обезличенные примеры с заполнителями. Рабочие токены, пароли, лицензионные ключи, файлы базы, персональные INI и журналы храните отдельно от публикуемых файлов. Встроенное скрытие полей в форме не изменяет содержимое INI на диске.</p>
+<p>Для восстановления рабочей копии сохраняйте:</p>
+<ul>
+<li>используемые INI из обеих папок <code>accounts</code>;</li>
+<li>персональные и общие списки <code>data/parametres/</code>;</li>
+<li>согласованную резервную копию SQLite либо штатную копию серверной базы;</li>
+<li>описания <code>data/autostart/jobs/</code>, архивы и нужные журналы;</li>
+<li>версию исходного кода и состав используемого окружения.</li>
+</ul>
+<p>Перед заменой рабочей конфигурации учитывайте выполняющиеся процессы и отключайте соответствующие регламентные пуски. Для восстановления INI выберите нужную копию из <code>data/configs/editor_backups/</code> и верните её под рабочим именем в исходную папку.</p>
+<p>Перенос JSON автозапуска не переносит задание планировщика автоматически. На новом компьютере задайте его пути и установите соответствующее задание ОС через форму или пакет.</p>
+<h2>Рыночные и лимитные заявки на покупку облигаций</h2>
+<p>Тип заявки задаётся отдельно в каждом INI в папке <code>data/configs/accounts/trading</code>. Для Finam используется gRPC, для Т-Инвестиций — Invest API, для Alor и БКС — HTTP API.</p>
+<pre><code class="language-ini">[settings]
+enable_bonds_limit_order = False
+execution_bonds_time_limit_order = 0
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Параметр</th>
+<th>По умолчанию</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enable_bonds_limit_order</code></td>
+<td><code>False</code></td>
+<td><code>False</code> выбирает рыночную покупку, <code>True</code> отдаёт предпочтение лимитной заявке</td>
+</tr>
+<tr>
+<td><code>execution_bonds_time_limit_order</code></td>
+<td><code>0</code></td>
+<td>Срок лимитной заявки на покупку облигаций в целых секундах. <code>0</code> отключает автоматическую отмену AlgoBond</td>
+</tr>
+</tbody>
+</table>
+<p>Например, лимитная заявка со сроком 15 минут:</p>
+<pre><code class="language-ini">[settings]
+enable_bonds_limit_order = True
+execution_bonds_time_limit_order = 900
+</code></pre>
+<p>В редакторе откройте <strong>Сделки и расписание → Условия размещения</strong>. Включите лимитную заявку, введите срок и выберите секунды, минуты, часы или дни. В INI всегда записываются секунды: <code>2 часа</code> → <code>7200</code>, <code>1 день</code> → <code>86400</code>. Допускается дробное число выбранных единиц, если результат составляет целое число секунд, например <code>1,5 минуты</code> → <code>90</code>. Диапазон — от <code>0</code> до <code>2147483647</code> секунд. Изменения начинают действовать после загрузки профиля торговым процессом; сохранение формы само по себе торговлю не запускает.</p>
+<p>Оба параметра применяются только при открытии позиции по облигациям через <code>setNewPositionBond</code>.</p>
+<p>При подтверждённой недоступности лимитной заявки AlgoBond повторяет проверки цены и объёма для рыночной покупки. В Т-Инвестициях доступность обоих типов проверяется до отправки. Для Финама, Алора и БКС основанием для перехода служит явный отказ брокера в лимитном типе. Если результат отправки лимитной заявки остаётся неопределённым, покупка приостанавливается до сверки с брокером.</p>
+<p>Цена берётся из существующего расчёта покупки: <code>PREVPRICE</code>, текущая котировка или стакан — в зависимости от настроек профиля. Для облигаций это котировка в процентах от номинала. В Т-Инвестиции передаётся <code>ORDER_TYPE_LIMIT</code> и <code>PRICE_TYPE_POINT</code>; цена покупки округляется вниз к шагу инструмента. Лимит не повышается автоматически, остаток не заменяется рыночной заявкой.</p>
+<p>До отправки проверяются фактические позиции и активные лимитные заявки брокера, включая внешние заявки, выставленные вручную. Заявка по тому же инструменту блокирует повторную покупку; ожидающие покупки входят в лимит числа позиций. При неподтверждённом состоянии заявки новые покупки для этого счёта приостанавливаются. Принятие заявки брокером подтверждается отдельным запросом состояния и не считается исполнением.</p>
+<p>Локальный журнал находится в <code>data/orders/orders.sqlite3</code>:</p>
+<ul>
+<li><code>orders</code> — действующие, частично исполненные и ожидающие подтверждения заявки;</li>
+<li><code>order_history</code> — изменения состояния, включая исполнение и отмену;</li>
+<li><code>order_sync</code> — время и результат последней сверки с брокером.</li>
+</ul>
+<p>Журнал создаётся автоматически, отдельно от базы снимков портфеля. Он работает при SQLite, PostgreSQL и ClickHouse в настройках мониторинга. <code>database_provider.py</code> и существующие таблицы портфеля не изменяются. В памяти брокерские данные также содержат список <code>orders</code> рядом с <code>positions</code>.</p>
+<p>После подтверждённого исполнения, отмены или истечения брокерского срока запись удаляется из <code>orders</code> и остаётся в истории. По частично исполненной заявке сохраняются исходный объём, исполненный объём и остаток. Ожидающая заявка резервирует расчётные средства и не увеличивает стоимость фактически купленного портфеля. Автоследование не отправляет встречную покупку на основании самого факта выставления лимитной заявки; сверка стратегии выполняется по фактическим позициям при последующей обработке.</p>
+<p>При положительном сроке торговый процесс продолжает работать в фоне до завершения управляемых заявок. Состояния проверяются примерно каждые 5 секунд и ближе к сроку отмены; длительность запросов и доступность брокера влияют на фактическое время подтверждения. По истечении срока отправляется отмена оставшегося объёма и проверяется её результат. Чужие заявки AlgoBond автоматически не отменяет. После повторного запуска торговли сохранённый срок не начинается заново.</p>
+<p>Срок в настройках — верхняя граница ожидания, а не обещание держать заявку до выбранного момента. Брокер или биржа могут завершить её раньше, например в конце торговой сессии. <code>0</code> означает отсутствие отмены со стороны AlgoBond, но сохраняет правила брокера. Если процесс завершён принудительно, компьютер выключен или отсутствует связь, своевременная отмена невозможна; сверка возобновляется при следующем запуске торговли. Для положительного срока не задавайте в планировщике принудительное завершение процесса раньше этого срока.</p>
+<p>В мониторинге откройте вкладку <strong>Лимитные заявки</strong>. Она показывает номер, инструмент, направление, заявленный и исполненный объём, остаток, цену, статус, время создания и срок отмены в UTC. Общий режим поддерживает группировку и фильтры по счетам. Исторический режим восстанавливает состояние локального журнала на выбранный момент; время снимков <code>AccountInfo</code> без часового пояса трактуется как московское. UI читает журнал той же установки; обновление страницы не делает торговых запросов к брокеру. Для внешних заявок единицы цены соответствуют ответу API и отмечены отдельно.</p>
+<p>Сохраняйте журнал вместе с рабочими данными и не удаляйте его при активных заявках: он содержит сроки, признаки принадлежности AlgoBond и ключи защиты от повторной отправки. При <code>unknown</code> проверьте заявку в терминале брокера. Повторный запуск сначала пытается сопоставить её по номеру или ключу запроса; если результат остаётся неопределённым, повторная отправка блокируется.</p>

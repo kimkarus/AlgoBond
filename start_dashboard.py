@@ -11,8 +11,6 @@ import webbrowser
 from pathlib import Path
 from urllib.parse import urlsplit, parse_qs
 
-from markdown_it import MarkdownIt
-
 HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
@@ -23,6 +21,8 @@ from algobond_autostart import JobManager, JobError, host_os, INTERVALS
 
 
 def render_about_guide(source):
+    from markdown_it import MarkdownIt
+
     # The web interface already provides a title and logo.
     _, heading, sections = source.partition("\n## ")
     markdown = MarkdownIt("commonmark", {"html": False}).enable("table")
@@ -47,8 +47,12 @@ class DashboardHandler(editor.EditorHandler):
                 page = (HERE / "dashboard.html").read_text(encoding="utf-8")
                 page = page.replace("__NONCE__", self.server.nonce)
                 if route == "/about":
-                    guide = (HERE / "README_GITHUB.md").read_text(encoding="utf-8")
-                    page = page.replace("<!-- ABOUT_GUIDE -->", render_about_guide(guide), 1)
+                    guide_path = HERE / "about_guide.html"
+                    if guide_path.is_file():
+                        guide = guide_path.read_text(encoding="utf-8")
+                    else:
+                        guide = render_about_guide((HERE / "README_GITHUB.md").read_text(encoding="utf-8"))
+                    page = page.replace("<!-- ABOUT_GUIDE -->", guide, 1)
                 self.respond(page, kind="text/html; charset=utf-8", support_chat=route not in ("/logs", "/about"))
             elif route == "/api/logs":
                 kind = parse_qs(urlsplit(self.path).query).get("kind", [""])[0]
@@ -117,7 +121,7 @@ class DashboardHandler(editor.EditorHandler):
                 for mode in editor.MODES:
                     profiles.extend(dict(row,mode=mode) for row in self.server.store.files(mode))
                 self.respond(dict(actions=manager.actions(),executables=manager.executables(),profiles=profiles,host_os=host_os(),project=str(manager.project),intervals=INTERVALS,
-                                  defaults=dict(windows_python=str(manager.project/'.venv/Scripts/python.exe'),linux_project='/home/jupyter/dev/jupyterlab_ilya/kimkarus_ea_monitor_py'),
+                                  defaults=dict(windows_python=str(manager.project/'.venv/Scripts/python.exe'),linux_project='/opt/algobond'),
                                   notes=['Windows: текущий пользователь, Interactive/Limited; требуется вход пользователя в систему.', 'Linux: crontab текущего пользователя; cron должен быть установлен.', 'Пакет ZIP содержит install, run, enable, disable, remove и status для выбранной ОС.']))
             elif route=='/api/autostart/jobs':self.respond(dict(jobs=manager.list()))
             elif route=='/api/autostart/package':
