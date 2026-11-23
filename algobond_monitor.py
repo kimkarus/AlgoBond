@@ -6,18 +6,23 @@ short-lived worker, so a driver crash cannot terminate the web application.
 from __future__ import annotations
 
 import argparse
+import base64
 import contextlib
 import hashlib
 import json
 import math
 import os
 import re
+import sqlite3
 import subprocess
 import sys
 import threading
 from datetime import date, datetime, timedelta
 from decimal import Decimal
+from http.client import HTTPConnection
 from pathlib import Path
+from types import SimpleNamespace
+from urllib.parse import urlencode
 
 HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:
@@ -34,6 +39,7 @@ FIELDS = {
 }
 MAX_ROWS = 10000
 MAX_SNAPSHOTS = 2000
+POSTGRES_DRIVER_ARCHIVE = "algobond_postgresql.zip"
 
 
 def safe_value(value):
@@ -144,7 +150,6 @@ class PortfolioReader:
         if not login.strip():
             raise editor.EditorError("В выбранной конфигурации не заполнен client.login. Укажите логин в редакторе.")
         fields = (*IDENTITY, "name", "latest")
-        # Distinct aliases matter for the provider's PostgreSQL RealDictCursor.
         predicate = f"{self.text_cast('login')}={sql_literal(login, self.dialect)}"
         sql = f"SELECT {','.join(IDENTITY)},MAX(name) AS name,MAX(date_record) AS latest FROM {self.table('AccountInfo')} WHERE {predicate} GROUP BY {','.join(IDENTITY)} ORDER BY MAX(date_record) DESC LIMIT 1001"
         rows = self.records("AccountInfo", sql, fields)
@@ -280,39 +285,107 @@ class PortfolioReader:
         return result
 
 
+class SqlReader:
+    def __init__(self, connection, setup):
+        self.connection = connection
+        try:
+            with contextlib.closing(connection.cursor()) as cursor:
+                for statement in setup:
+                    cursor.execute(statement)
+        except Exception:
+            with contextlib.suppress(Exception):
+                connection.close()
+            raise
+
+    def selectDataList(self, sql):
+        with contextlib.closing(self.connection.cursor()) as cursor:
+            cursor.execute(sql)
+            return cursor.fetchall()
+
+    def close(self):
+        self.connection.close()
+
+
+class ClickHouseReader:
+    def __init__(self, database):
+        credentials = f"{database['login']}:{database['password']}".encode("utf-8")
+        self.headers = {"Authorization": "Basic " + base64.b64encode(credentials).decode("ascii")}
+        self.connection = HTTPConnection(database["address"], database.getint("port"), timeout=10)
+
+    def selectDataList(self, sql):
+        query = urlencode({"query": sql + " FORMAT JSONCompact", "wait_end_of_query": 1})
+        self.connection.request("GET", "/?" + query, headers=self.headers)
+        with self.connection.getresponse() as response:
+            if response.status != 200:
+                raise editor.EditorError(f"ClickHouse ответил HTTP {response.status}. Проверьте адрес, порт и права чтения.", 502)
+            return json.load(response, parse_float=Decimal)["data"]
+
+    def close(self):
+        self.connection.close()
+
+
+def postgresql_driver():
+    bundle = HERE / POSTGRES_DRIVER_ARCHIVE
+    if bundle.is_file() and str(bundle) not in sys.path:
+        sys.path.insert(0, str(bundle))
+    try:
+        import pg8000.dbapi as driver
+    except ImportError:
+        raise editor.EditorError(
+            "Драйвер PostgreSQL не загружен. Распакуйте полный клиентский ZIP или установите pg8000 в окружение AlgoBond.",
+            503,
+        ) from None
+    return driver
+
+
 def open_project_provider(project, mode, name):
     store = editor.ConfigStore(project)
     _, text = store.read(mode, name)
     config = editor.parse_ini(text)
     if not config.has_section("database"):
         raise editor.EditorError("В выбранном профиле нет секции [database]. Добавьте ее в редакторе.")
-    database_type = config.get("database", "type", fallback="clickhouse")
+    database = config["database"]
+    database_type = database.get("type", "clickhouse")
     if database_type not in ("sqlite3", "postgresql", "clickhouse"):
         raise editor.EditorError("Этот тип базы не поддерживается.")
+    cfg = SimpleNamespace(
+        database_type=database_type,
+        database_name=database.get("name", ""),
+        client_id=config.get("client", "client_id", fallback=""),
+        login=config.get("client", "login", fallback=""),
+        broker_name=config.get("client", "broker_name", fallback=""),
+    )
     if database_type == "sqlite3":
         db = project / "data/algobond.db"
         if not db.is_file():
             raise editor.EditorError("Файл data/algobond.db не найден. Пустая база автоматически не создается.")
-    sys.path.insert(0, str(project))
-    # The current package __init__ modules import one another. This is the
-    # project's working initialization order; it does not create broker clients.
-    import libs.analyzer.prepare  # noqa: F401
-    from libs.configs.model import Configs
-    from libs.interfaces.databases.database_provider import DatabaseProvider
-    _cfg = Configs.parseConfigsettings(config, "", str(project))
-    _dpr = DatabaseProvider(_cfg)
-    conn = getattr(_dpr.db_config, "conn", None)
-    if database_type == "sqlite3":
-        conn.execute("PRAGMA query_only=ON")
-        conn.execute("BEGIN")
+        connection = sqlite3.connect(db.resolve().as_uri() + "?mode=ro", uri=True, timeout=5)
+        provider = SqlReader(connection, ("PRAGMA query_only=ON", "BEGIN"))
     elif database_type == "postgresql":
-        conn.set_session(readonly=True, autocommit=False, isolation_level="REPEATABLE READ")
-        with conn.cursor() as cur:
-            cur.execute("SET statement_timeout = 10000")
-    probe = _dpr.selectDataList("SELECT 1")
-    if not probe:
-        raise editor.EditorError("База не ответила на проверочный запрос. Проверьте подключение.")
-    return _dpr, _cfg
+        driver = postgresql_driver()
+        connection = driver.connect(
+            host=database["address"],
+            port=database.getint("port"),
+            user=database["login"],
+            password=database["password"],
+            database=cfg.database_name,
+            timeout=10,
+        )
+        provider = SqlReader(connection, (
+            "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY",
+            "SET LOCAL statement_timeout = 10000",
+        ))
+    else:
+        provider = ClickHouseReader(database)
+
+    try:
+        if not provider.selectDataList("SELECT 1"):
+            raise editor.EditorError("База не ответила на проверочный запрос. Проверьте подключение.")
+    except Exception:
+        with contextlib.suppress(Exception):
+            provider.close()
+        raise
+    return provider, cfg
 
 
 class MonitorService:
@@ -384,16 +457,13 @@ def worker_main(argv=None):
                 raise editor.EditorError("Неизвестное действие.")
     except editor.EditorError as exc:
         result = dict(error=str(exc), status=exc.status)
-    except (ImportError, ModuleNotFoundError):
-        result = dict(error="Не удалось загрузить зависимости AlgoBond. Запустите приложение через Python из .venv проекта; проверьте diagnose_monitoring.py.", status=503)
     except Exception as exc:
         # Never return driver exception text: it may contain passwords/hosts.
         result = dict(error=f"Не удалось прочитать базу ({type(exc).__name__}). Проверьте реквизиты, доступ и таблицы.", status=502)
     finally:
-        conn = getattr(getattr(provider, "db_config", None), "conn", None)
-        if conn is not None:
+        if provider is not None:
             with contextlib.suppress(Exception):
-                conn.close()
+                provider.close()
     print(json.dumps(result, ensure_ascii=False, allow_nan=False), flush=True)
 
 

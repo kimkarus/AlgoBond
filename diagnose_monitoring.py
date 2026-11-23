@@ -11,16 +11,23 @@ def main():
     p = argparse.ArgumentParser(description="Диагностика среды мониторинга без запуска торговли")
     p.add_argument("--project", type=Path, default=Path(__file__).resolve().parent)
     p.add_argument("--mode", choices=("monitoring", "trading"), default="monitoring")
-    p.add_argument("--config", default="tinkoff_KosarevIM_auto_test.ini")
+    p.add_argument("--config", help="Имя INI-файла для --connect")
     p.add_argument("--connect", action="store_true", help="Дополнительно проверить базу выбранной конфигурации")
     p.add_argument("--output", type=Path)
     args = p.parse_args()
+    if args.connect and not args.config:
+        p.error("Для --connect укажите имя профиля через --config.")
     root = args.project.resolve()
     log = args.output or root / "data/diagnostics" / ("monitoring_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".log")
     lines = ["AlgoBond monitoring diagnostics", "Python: " + sys.version.replace("\n", " "), "Executable: " + sys.executable]
-    for module in ("sqlite3", "numpy", "pandas", "psycopg2", "pg8000", "grpc", "libs.analyzer.prepare"):
-        code = "import sys,importlib;sys.path.insert(0," + repr(str(root)) + ");importlib.import_module(" + repr(module) + ");print('OK')"
-        command = [sys.executable, "-I", "-B", "-X", "faulthandler", "-c", code]
+    checks = {
+        "sqlite3": "import sqlite3",
+        "http.client": "import http.client",
+        "pg8000": "from algobond_monitor import postgresql_driver; postgresql_driver()",
+    }
+    for module, check in checks.items():
+        code = "import sys; sys.path.insert(0, sys.argv[1]); " + check
+        command = [sys.executable, "-I", "-B", "-X", "faulthandler", "-c", code, str(Path(__file__).resolve().parent)]
         try:
             result = subprocess.run(command, capture_output=True, timeout=30, creationflags=getattr(subprocess,"CREATE_NO_WINDOW",0))
             status = "OK" if result.returncode == 0 else f"FAIL 0x{result.returncode & 0xffffffff:08X}"
