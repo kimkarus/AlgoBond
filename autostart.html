@@ -37,7 +37,11 @@ async function api(route,payload){const response=await fetch('/api/autostart/'+r
 function localTarget(){const norm=value=>String(value).replace(/\\/g,'/').replace(/\/+$/,'').toLocaleLowerCase('en');return $('jobOs').value===A.boot.host_os&&norm($('jobRoot').value)===norm(A.boot.project);}
 function selectedExecutable(){if($('jobOs').value!=='windows')return null;const edition=$('jobEdition').value||'auto',exes=A.boot?.executables||[];if(edition!=='auto')return exes.find(exe=>exe.key===edition)||null;if(!localTarget()||$('jobAction').value==='analytics')return null;const found=exes.filter(exe=>exe.available);return found.length===1?found[0]:null;}
 function scriptSpec(){const action=A.boot?.actions.find(action=>action.key===$('jobAction').value),exe=selectedExecutable();return action&&exe?{...action,script:exe.executable,folder:'trading',file_scope:true}:action;}
-function pythonDefault(){const windows=$('jobOs').value==='windows';return $('jobRoot').value.replace(/[\\/]+$/,'')+(windows?'\\.venv\\Scripts\\python.exe':'/.venv/bin/python');}
+function pythonDefault(){
+  if(localTarget())return A.boot.defaults.local_python;
+  const windows=$('jobOs').value==='windows';
+  return $('jobRoot').value.replace(/[\\/]+$/,'')+(windows?'\\.venv\\Scripts\\python.exe':'/.venv/bin/python');
+}
 function targetDefaults(){const windows=$('jobOs').value==='windows';$('jobRoot').value=$('jobOs').value===A.boot.host_os?A.boot.project:windows?'C:\\AlgoBond\\kimkarus_ea_monitor_py':A.boot.defaults.linux_project;$('jobPython').value=pythonDefault();A.autoPython=true;updateFields();}
 function updateFields(){
   const windows=$('jobOs').value==='windows';$('jobEdition').disabled=!windows;if(!windows)$('jobEdition').value='auto';

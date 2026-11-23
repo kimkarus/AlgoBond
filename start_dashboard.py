@@ -120,8 +120,12 @@ class DashboardHandler(editor.EditorHandler):
                 profiles=[]
                 for mode in editor.MODES:
                     profiles.extend(dict(row,mode=mode) for row in self.server.store.files(mode))
-                self.respond(dict(actions=manager.actions(),executables=manager.executables(),profiles=profiles,host_os=host_os(),project=str(manager.project),intervals=INTERVALS,
-                                  defaults=dict(windows_python=str(manager.project/'.venv/Scripts/python.exe'),linux_project='/opt/algobond'),
+                system = host_os()
+                local_python = manager.default_python(manager.project, system)
+                self.respond(dict(actions=manager.actions(),executables=manager.executables(),profiles=profiles,host_os=system,project=str(manager.project),intervals=INTERVALS,
+                                  defaults=dict(local_python=local_python,
+                                                windows_python=local_python if system == 'windows' else str(manager.project/'.venv/Scripts/python.exe'),
+                                                linux_project='/opt/algobond'),
                                   notes=['Windows: текущий пользователь, Interactive/Limited; требуется вход пользователя в систему.', 'Linux: crontab текущего пользователя; cron должен быть установлен.', 'Пакет ZIP содержит install, run, enable, disable, remove и status для выбранной ОС.']))
             elif route=='/api/autostart/jobs':self.respond(dict(jobs=manager.list()))
             elif route=='/api/autostart/package':

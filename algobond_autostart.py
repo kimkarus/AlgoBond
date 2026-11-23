@@ -312,10 +312,15 @@ class JobManager:
             raise JobError("Выберите Windows или Linux.")
         flavor = PureWindowsPath if system == "windows" else PurePosixPath
         project = text(target.get("project", str(self.project)), "папка проекта", 1000, False)
-        python = text(target.get("python", str(flavor(project) / ('.venv/Scripts/python.exe' if system == 'windows' else '.venv/bin/python'))), "Python", 1000, False)
-        if not flavor(project).is_absolute() or not flavor(python).is_absolute() or '..' in flavor(project).parts or '..' in flavor(python).parts:
+        if not flavor(project).is_absolute() or '..' in flavor(project).parts:
             raise JobError("Пути проекта и Python должны быть абсолютными, без переходов '..'.")
-        if system == "windows" and (str(flavor(project)).startswith('\\\\') or str(flavor(python)).startswith('\\\\')):
+        if system == "windows" and str(flavor(project)).startswith('\\\\'):
+            raise JobError("Для Windows укажите локальные пути с буквой диска.")
+        python_value = target['python'] if 'python' in target else self.default_python(project, system)
+        python = text(python_value, "Python", 1000, False)
+        if not flavor(python).is_absolute() or '..' in flavor(python).parts:
+            raise JobError("Пути проекта и Python должны быть абсолютными, без переходов '..'.")
+        if system == "windows" and str(flavor(python)).startswith('\\\\'):
             raise JobError("Для Windows укажите локальные пути с буквой диска.")
         if not re.fullmatch(r"python(?:\d+(?:\.\d+)*)?(?:\.exe)?", flavor(python).name, re.I):
             raise JobError("Укажите исполняемый файл Python.")
@@ -404,6 +409,13 @@ class JobManager:
             return False
         return os.path.normcase(str(Path(job["target"]["project"]).resolve())) == os.path.normcase(str(self.project))
 
+    def default_python(self, project, system):
+        flavor = PureWindowsPath if system == 'windows' else PurePosixPath
+        venv = flavor(project) / ('.venv/Scripts/python.exe' if system == 'windows' else '.venv/bin/python')
+        if self.local(dict(target=dict(project=project, os=system))) and not Path(venv).is_file():
+            return sys.executable or str(venv)
+        return str(venv)
+
     def command(self, job, target=True, require_exists=True):
         spec = self.launch(job,require_exists=require_exists)
         root = (PureWindowsPath if job['target']['os']=='windows' else PurePosixPath)(job['target']['project']) if target else self.project
@@ -468,10 +480,14 @@ class JobManager:
         if launch['kind']=='exe':notes.append('EXE имеет приоритет над Python-сценариями. Сборки start_algobond_* читают INI из trading. Python используется для менеджера заданий, торговую программу запускает EXE.')
         if launch['interactive']:notes.append('DEMO открывается в отдельной видимой консоли и ожидает ответы пользователя. Планировщик не отвечает на вопросы; до закрытия процесса повтор этого задания пропускается.')
         if launch['pending']:notes.append('Наличие EXE в другой целевой папке здесь не проверяется. Показана резервная Python-команда; окончательный выбор «Авто» выполняется на целевой машине. Для однозначного EXE-пакета выберите вариант явно.')
+        local = self.local(job)
+        if local and not Path(job['target']['python']).is_file():
+            default = self.default_python(self.project, job['target']['os'])
+            notes.append(f"Python менеджера по сохранённому пути не найден. В поле Python можно указать {default} и сохранить задание.")
         return dict(job=job,action=spec,launch=launch,argv=argv,
                     command=subprocess.list2cmdline(argv) if job['target']['os']=='windows' else shlex.join(argv),
                     working_directory=job['target']['project'],schedule_text=schedule_description(job),scope=scope,
-                    local=self.local(job),task_name=self.identity(job),cron=cron_time(job['schedule']) if job['target']['os']=='linux' else None,
+                    local=local,task_name=self.identity(job),cron=cron_time(job['schedule']) if job['target']['os']=='linux' else None,
                     notes=notes)
 
     def present(self, job):
@@ -634,7 +650,8 @@ class JobManager:
 
     def ensure_local_paths(self, job):
         if not self.local(job):raise JobError('Используйте пакет на целевой ОС и в указанной папке проекта.',409)
-        if not Path(job['target']['python']).is_file():raise JobError('Python для менеджера заданий по указанному пути не найден. Сама торговая программа при наличии запускается через EXE.')
+        if not Path(job['target']['python']).is_file():
+            raise JobError('Python менеджера заданий не найден. Укажите существующий путь в поле «Python менеджера заданий на целевом компьютере» и сохраните задание.')
         if not (self.project/'algobond_autostart.py').is_file():raise JobError('Добавьте algobond_autostart.py в корень проекта перед установкой.')
 
     def import_definition(self, raw, cleanup=False, replace=False):
