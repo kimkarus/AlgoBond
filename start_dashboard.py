@@ -86,7 +86,7 @@ class DashboardHandler(editor.EditorHandler):
                 page = render_workspace_page(page, route, self.server.nonce)
                 if route == "/about":
                     page = page.replace("<!-- ABOUT_GUIDE -->", load_about_guide(HERE), 1)
-                self.respond(page, kind="text/html; charset=utf-8", support_chat=route not in ("/logs", "/about"))
+                self.respond(page, kind="text/html; charset=utf-8")
             elif route == "/api/logs":
                 kind = parse_qs(urlsplit(self.path).query).get("kind", [""])[0]
                 if kind not in LOG_FILES:
