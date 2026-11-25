@@ -49,7 +49,7 @@ ACTIONS = {
                      description="Запускает выбранную сборку AlgoBond целиком. Для demo используются её демонстрационная последовательность и вопросы в отдельной консоли."),
 }
 EDITIONS = {key:dict(key=key, title=key.upper(), executable='start_algobond_'+key+'.exe',
-                    interactive=key=='demo') for key in ('demo','full','ofz','trial','trial_180')}
+                    interactive=key=='demo') for key in ('demo','full','ofz','trial','trial_180','monitor')}
 
 
 class JobError(Exception):
@@ -267,12 +267,12 @@ class JobManager:
         for key,spec in EDITIONS.items():
             path=self.project/spec['executable']
             available=(self.project/'data').is_dir() and path.is_file() and not path.is_symlink() and path.resolve().parent==self.project
-            actions=['program'] if key=='demo' else [name for name in ACTIONS if name!='analytics']
+            actions = ['program'] if key == 'demo' else [name for name in ACTIONS if name != 'analytics']
             result.append(dict(spec,available=available,actions=actions))
         return result
 
     def launch(self, job, require_exists=True):
-        """Resolve only the five named binaries in the target project root."""
+        """Resolve supported binaries in the target project root."""
         edition=job.get('edition','auto');system=job['target']['os'];action=job['action']
         if edition!='auto' and edition not in EDITIONS:raise JobError('Выберите известный вариант EXE.')
         if system!='windows' and edition!='auto':raise JobError('Сборки EXE доступны только для Windows.')
@@ -283,9 +283,11 @@ class JobManager:
                 if require_exists and self.local(job) and not next(row for row in self.executables() if row['key']==edition)['available']:
                     raise JobError('В корне проекта рядом с data не найден '+EDITIONS[edition]['executable']+'.')
             elif action!='analytics' and self.local(job):
-                available=[row for row in self.executables() if row['available']]
-                if len(available)>1:raise JobError('Найдено несколько EXE. Выберите вариант программы в форме; автоматический выбор неоднозначен.')
-                if available:selected=available[0]['key']
+                available = [row for row in self.executables() if row['available']]
+                if len(available) > 1:
+                    raise JobError('Найдено несколько EXE. Выберите вариант программы в форме; автоматический выбор неоднозначен.')
+                if available:
+                    selected = available[0]['key']
         spec=dict(ACTIONS[action])
         if selected:
             if action=='analytics':raise JobError('В перечисленных сборках EXE нет отдельного сценария Analytics. Выберите «Авто» для запуска start_analytics.py.')

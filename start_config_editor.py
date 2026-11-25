@@ -152,6 +152,8 @@ GROUPS = [
         ]),
         dict(title="Ребалансировка и сокращение", fields=[
             setting("enable_rebalancing_by_config", "Ребалансировка", "bool", "False"),
+            setting("enable_bonds_limit_order_rebalacing", "Лимитная продажа при ребалансировке", "bool", "True", help="Выключите, чтобы отправлять рыночные заявки при ребалансировке."),
+            setting("execution_bonds_time_limit_order_rebalacing", "Срок лимитной продажи при ребалансировке", "duration", "14400", min=0, max=2147483647, help="0 отключает автоматическую отмену AlgoBond. В INI сохраняются целые секунды."),
             setting("enable_sell_degradating_position", "Продажа деградирующих позиций", "bool", "False"),
             setting("percent_degradating_position_for_sell", "Порог деградации", default="5", min=0, step=0.1, unit="%"),
             setting("enable_target_minimum_profit_diff_sell", "Продажа по цели прибыли", "bool", "False"),
@@ -199,6 +201,8 @@ GROUPS = [
                     help="Файл logs/debug.log и вывод диагностических сообщений в консоль."),
             setting("enable_logs_transactions", "Записывать отправку заявок", "bool", "False",
                     help="Рыночные и лимитные заявки в logs/transactions.log."),
+            setting("logs_retention_days", "Срок хранения логов", "integer", "2", min=1, unit="дней",
+                    help="Общий срок для трёх журналов. Если в профилях заданы разные сроки, применяется самый короткий."),
         ]),
     ]),
     dict(id="database", title="Хранение и уведомления", subtitle="База данных и параметры сообщений", icon="database", groups=[

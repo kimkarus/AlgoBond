@@ -17,9 +17,13 @@ from pathlib import Path
 
 if os.name == "nt":
     import msvcrt
+else:
+    import fcntl
 
 
 LOG_FILES = {"errors": "errors.log", "debug": "debug.log", "transactions": "transactions.log"}
+DEFAULT_LOG_RETENTION_DAYS = 2
+_LOG_FLAGS = ("enable_logs_errors", "enable_logs_debugs", "enable_logs_transactions")
 TRANSACTIONS = "algobond.transactions"
 logger = logging.getLogger(__name__)
 active_options = ContextVar("algobond_log_options", default=None)
@@ -30,12 +34,14 @@ class LogOptions:
     enable_logs_errors: bool = True
     enable_logs_debugs: bool = False
     enable_logs_transactions: bool = False
+    logs_retention_days: int = DEFAULT_LOG_RETENTION_DAYS
 
     @classmethod
     def from_ini(cls, config):
         defaults = cls()
         values = {}
-        for key, default in vars(defaults).items():
+        for key in _LOG_FLAGS:
+            default = getattr(defaults, key)
             try:
                 value = config.get("settings", key, fallback=None)
             except configparser.Error:
@@ -50,15 +56,53 @@ class LogOptions:
                 values[key] = False
             else:
                 logger.warning("Недопустимое значение параметра %s. Используется %s.", key, default)
+        try:
+            days = _read_retention_days(config)
+            if days is not None:
+                values["logs_retention_days"] = days
+        except (configparser.Error, ValueError):
+            logger.warning("Недопустимое значение logs_retention_days. Используется срок по умолчанию.")
         return cls(**values)
 
     @classmethod
     def for_profiles(cls, profiles):
         defaults = cls()
-        return cls(**{
-            key: any(getattr(profile, key, default) for profile in profiles)
-            for key, default in vars(defaults).items()
-        }) if profiles else defaults
+        if not profiles:
+            return defaults
+        flags = {
+            key: any(getattr(profile, key, getattr(defaults, key)) for profile in profiles)
+            for key in _LOG_FLAGS
+        }
+        days = min(getattr(profile, "logs_retention_days", DEFAULT_LOG_RETENTION_DAYS) for profile in profiles)
+        return cls(**flags, logs_retention_days=days)
+
+
+def _read_retention_days(config):
+    days = config.getint("settings", "logs_retention_days", fallback=None)
+    if days is not None and days < 1:
+        raise ValueError("logs_retention_days must be positive")
+    return days
+
+
+def _project_retention_days(project, default):
+    # Dashboard and jobs that load different profiles still write to the same files.
+    accounts = project / "data" / "configs" / "accounts"
+    days = []
+    for family in ("monitoring", "trading"):
+        for path in (accounts / family).glob("*"):
+            if path.suffix.lower() != ".ini" or not path.is_file():
+                continue
+            config = configparser.ConfigParser(interpolation=None)
+            try:
+                with path.open(encoding="utf-8-sig") as stream:
+                    config.read_file(stream)
+                if config.has_section("client"):
+                    value = _read_retention_days(config)
+                    if value is not None:
+                        days.append(value)
+            except (OSError, UnicodeError, configparser.Error, ValueError):
+                continue
+    return min(days, default=default)
 
 
 @contextmanager
@@ -71,34 +115,39 @@ def profile_logging(profile):
 
 
 @contextmanager
-def append_lock(path):
-    # POSIX append writes are positioned atomically. Windows Python uses the
-    # CRT append mode, which can seek and write separately across processes.
-    if os.name != "nt":
-        yield
-        return
-    with path.with_suffix(path.suffix + ".lock").open("a+b") as lock:
+def log_lock(path):
+    with path.open("a+b") as lock:
         lock.seek(0)
         deadline = time.monotonic() + 2
         while True:
             try:
-                msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+                if os.name == "nt":
+                    msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+                else:
+                    fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 break
             except OSError as error:
-                if error.errno not in (errno.EACCES, errno.EDEADLK) or time.monotonic() >= deadline:
+                if error.errno not in (errno.EACCES, errno.EAGAIN, errno.EDEADLK) or time.monotonic() >= deadline:
                     raise
                 time.sleep(0.01)
         try:
-            yield
+            yield lock
         finally:
-            msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)
+            if os.name == "nt":
+                lock.seek(0)
+                msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
 
 
 class ProjectLogHandler(logging.Handler):
     def __init__(self, project, options):
         super().__init__()
-        self.folder = Path(project).resolve() / "logs"
+        project = Path(project).resolve()
+        self.folder = project / "logs"
         self.options = options
+        days = getattr(options, "logs_retention_days", DEFAULT_LOG_RETENTION_DAYS)
+        self.retention_seconds = _project_retention_days(project, days) * 86400
         self.setFormatter(logging.Formatter("%(asctime)s %(levelname)s [%(process)d] %(name)s: %(message)s"))
         self.console = logging.StreamHandler()
         self.console.setFormatter(self.formatter)
@@ -124,13 +173,57 @@ class ProjectLogHandler(logging.Handler):
             self.folder.mkdir(exist_ok=True, parents=True)
             line = self.format(record).encode("utf-8", errors="backslashreplace") + b"\n"
             path = self.folder / LOG_FILES[kind]
-            with append_lock(path), path.open("ab", buffering=0) as stream:
-                stream.write(line)
+            with log_lock(self.folder / ".rotation.lock") as period:
+                self._reset_expired_logs(period)
+                with path.open("ab", buffering=0) as stream:
+                    stream.write(line)
         except (OSError, ValueError):
             if debug:
                 notice = logging.LogRecord(__name__, logging.WARNING, "", 0,
                                            "Не удалось записать logs/%s.", (LOG_FILES[kind],), None)
                 self.console.handle(notice)
+
+    def _reset_expired_logs(self, period):
+        now = int(time.time())
+        period.seek(0)
+        try:
+            started = int(period.read(32))
+        except ValueError:
+            started = self._first_existing_entry(now)
+        else:
+            if 0 <= now - started < self.retention_seconds:
+                return
+
+        if now - started >= self.retention_seconds:
+            if self.folder.resolve() != self.folder:
+                raise PermissionError("Log directory points outside its configured location")
+            for filename in LOG_FILES.values():
+                path = self.folder / filename
+                if path.is_symlink():
+                    path.unlink(missing_ok=True)
+                    continue
+                try:
+                    with path.open("r+b") as stream:
+                        stream.truncate(0)
+                except FileNotFoundError:
+                    continue
+            started = now
+
+        period.seek(0)
+        period.truncate(0)
+        period.write(str(min(started, now)).encode("ascii"))
+        period.flush()
+
+    def _first_existing_entry(self, default):
+        dates = []
+        for filename in LOG_FILES.values():
+            try:
+                with (self.folder / filename).open("rb") as stream:
+                    timestamp = stream.read(19).decode("ascii")
+                dates.append(int(time.mktime(time.strptime(timestamp, "%Y-%m-%d %H:%M:%S"))))
+            except (OSError, ValueError, OverflowError):
+                continue
+        return min(dates, default=default)
 
 
 def configure_logging(project, options=None, *, startup=False):

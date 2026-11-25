@@ -13,7 +13,7 @@
 </style></head><body>
 <div class="shell"><aside class="sidebar"><div class="brand" role="img" aria-label="AlgoBond"></div><div class="caption">РАБОЧЕЕ ПРОСТРАНСТВО</div><nav class="nav" aria-label="Основная навигация"><a href="/">Главная</a><a href="/monitor">Мониторинг</a><a href="/editor">Конфигурации</a><a href="/autostart" class="active">Автозапуски</a><a href="/about">О программе</a></nav><div class="sidebar-bottom"><span class="dot"></span>Регламентные задания<br>Windows Task Scheduler · Linux cron</div></aside>
 <main class="main"><header class="topbar"><div><div class="eyebrow">ALGOBOND · РАСПИСАНИЕ</div><h1>Автозапуски</h1></div><button class="btn primary" id="newJob">＋ Новое задание</button></header><div class="content">
-<div class="alert info">Сначала сохраните конфигурацию, затем установите задание ОС или скачайте пакет для целевого компьютера. Ручной запуск выполняет выбранный исходный скрипт AlgoBond.</div>
+<div class="alert info">Сначала сохраните конфигурацию, затем установите задание ОС или скачайте пакет для целевого компьютера. Ручной запуск выполняет выбранное действие.</div>
 <div class="scheduler-grid">
 <section><form class="card job-form" id="jobForm"><h2 id="formTitle">Новое задание</h2><p class="small muted">Действие, параметры и расписание</p><div class="fields-grid">
 <div><label class="label" for="jobTitle">Название</label><input id="jobTitle" class="input" maxlength="120" placeholder="Мониторинг каждые 15 минут" required><label class="label" for="jobAction">Действие</label><select id="jobAction" class="input"></select><p id="actionDescription" class="job-help"></p><div id="configRow"><label class="label" for="jobConfig">INI-конфигурация</label><select id="jobConfig" class="input"><option value="">Все подходящие активные профили</option></select></div><p id="scopeHelp" class="job-help"></p>
@@ -35,7 +35,14 @@ function errorBox(id,message){$(id).textContent=message||'';$(id).classList.togg
 let toastTimer;function toast(message,bad=false){const box=$('schedulerToast');box.textContent=message;box.className='scheduler-toast'+(bad?' bad':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>box.classList.add('hidden'),6500);}
 async function api(route,payload){const response=await fetch('/api/autostart/'+route,{method:payload?'POST':'GET',headers:{'X-Editor-Token':token,...(payload?{'Content-Type':'application/json'}:{})},body:payload?JSON.stringify(payload):undefined});const data=await response.json();if(!response.ok)throw new Error(data.error||'Ошибка запроса');return data;}
 function localTarget(){const norm=value=>String(value).replace(/\\/g,'/').replace(/\/+$/,'').toLocaleLowerCase('en');return $('jobOs').value===A.boot.host_os&&norm($('jobRoot').value)===norm(A.boot.project);}
-function selectedExecutable(){if($('jobOs').value!=='windows')return null;const edition=$('jobEdition').value||'auto',exes=A.boot?.executables||[];if(edition!=='auto')return exes.find(exe=>exe.key===edition)||null;if(!localTarget()||$('jobAction').value==='analytics')return null;const found=exes.filter(exe=>exe.available);return found.length===1?found[0]:null;}
+function selectedExecutable(action=$('jobAction').value){
+  if($('jobOs').value!=='windows')return null;
+  const edition=$('jobEdition').value||'auto',exes=A.boot.executables||[];
+  if(edition!=='auto')return exes.find(exe=>exe.key===edition)||null;
+  if(!localTarget()||action==='analytics')return null;
+  const found=exes.filter(exe=>exe.available);
+  return found.length===1?found[0]:null;
+}
 function scriptSpec(){const action=A.boot?.actions.find(action=>action.key===$('jobAction').value),exe=selectedExecutable();return action&&exe?{...action,script:exe.executable,folder:'trading',file_scope:true}:action;}
 function pythonDefault(){
   if(localTarget())return A.boot.defaults.local_python;
@@ -45,9 +52,13 @@ function pythonDefault(){
 function targetDefaults(){const windows=$('jobOs').value==='windows';$('jobRoot').value=$('jobOs').value===A.boot.host_os?A.boot.project:windows?'C:\\AlgoBond\\kimkarus_ea_monitor_py':A.boot.defaults.linux_project;$('jobPython').value=pythonDefault();A.autoPython=true;updateFields();}
 function updateFields(){
   const windows=$('jobOs').value==='windows';$('jobEdition').disabled=!windows;if(!windows)$('jobEdition').value='auto';
-  let exe=selectedExecutable();
-  for(const option of $('jobAction').options){const action=A.boot.actions.find(action=>action.key===option.value);option.disabled=exe?!(exe.actions||[]).includes(option.value):!(action?.python_available??action?.available);if(!exe&&option.value==='program')option.disabled=true;if(($('jobEdition').value||'auto')==='auto'&&option.value==='analytics')option.disabled=!action?.available;option.textContent=action.title+(option.disabled?' · недоступно':'');}
-  if([...$('jobAction').options].find(option=>option.value===$('jobAction').value)?.disabled){$('jobAction').value=[...$('jobAction').options].find(option=>!option.disabled)?.value||'';exe=selectedExecutable();}
+  for(const option of $('jobAction').options){
+    const action=A.boot.actions.find(action=>action.key===option.value),exe=selectedExecutable(option.value);
+    option.disabled=exe?!exe.actions.includes(option.value):!action.python_available;
+    option.textContent=action.title+(option.disabled?' · недоступно':'');
+  }
+  if([...$('jobAction').options].find(option=>option.value===$('jobAction').value)?.disabled){$('jobAction').value=[...$('jobAction').options].find(option=>!option.disabled)?.value||'';}
+  const exe=selectedExecutable();
   const spec=scriptSpec(),previous=$('jobConfig').value;$('actionDescription').textContent=spec?.description||'';
   $('jobConfig').replaceChildren(new Option('Все подходящие активные профили',''));
   if(spec?.file_scope)for(const p of A.boot.profiles.filter(p=>p.mode===spec.folder))$('jobConfig').append(new Option(`${p.label} · ${p.name}${p.active?'':' · неактивен'}`,p.name));
