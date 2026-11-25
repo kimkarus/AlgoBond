@@ -8,6 +8,7 @@ import logging
 import re
 import sys
 import webbrowser
+from html import escape
 from pathlib import Path
 from urllib.parse import urlsplit, parse_qs
 
@@ -20,6 +21,29 @@ from algobond_monitor import MonitorService
 from algobond_autostart import JobManager, JobError, host_os, INTERVALS
 
 
+WORKSPACE_LINKS = (
+    ("/", "navHome", "Главная", '<path d="m3 11 9-8 9 8v10h-6v-7H9v7H3Z"/>'),
+    ("/monitor", "navMonitor", "Мониторинг", '<path d="M3 4v16h18M7 15l4-5 4 3 6-8"/>'),
+    ("/autostart", "navAutostart", "Автозапуски", '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+    ("/editor", "navEditor", "Конфигурации", '<path d="M5 3h9l5 5v13H5ZM14 3v6h5M8 13h8M8 17h6"/>'),
+    ("/logs", "navLogs", "Логи", '<path d="M5 3h14v18H5ZM8 8h8M8 12h8M8 16h5"/>'),
+    ("/about", "navAbout", "О программе", '<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v2"/>'),
+)
+
+
+def render_workspace_page(page, route, nonce):
+    menu_class = "workspace-nav" if route == "/editor" else "nav"
+    links = []
+    for href, link_id, label, icon in WORKSPACE_LINKS:
+        selected = ' class="active" aria-current="page"' if href == route else ""
+        links.append(
+            f'<a href="{href}" id="{link_id}"{selected}>'
+            f'<svg viewBox="0 0 24 24" aria-hidden="true">{icon}</svg>{label}</a>'
+        )
+    menu = f'<nav class="{menu_class}" aria-label="Основная навигация">{"".join(links)}</nav>'
+    return page.replace("__NONCE__", nonce).replace("<!-- WORKSPACE_NAV -->", menu, 1)
+
+
 def render_about_guide(source):
     from markdown_it import MarkdownIt
 
@@ -30,6 +54,20 @@ def render_about_guide(source):
     # Restore the README's named anchors without allowing other raw HTML.
     return re.sub(r'<p>&lt;a id=&quot;([a-z][a-z0-9-]*)&quot;&gt;&lt;/a&gt;</p>',
                   r'<a id="\1"></a>', html)
+
+
+def load_about_guide(directory):
+    ready_guide = directory / "about_guide.html"
+    if ready_guide.is_file():
+        return ready_guide.read_text(encoding="utf-8")
+
+    source = (directory / "README_GITHUB.md").read_text(encoding="utf-8")
+    try:
+        return render_about_guide(source)
+    except ModuleNotFoundError as error:
+        if error.name not in {"markdown_it", "mdurl"}:
+            raise
+        return f'<pre class="about-guide-source">{escape(source)}</pre>'
 
 
 class DashboardHandler(editor.EditorHandler):
@@ -45,14 +83,9 @@ class DashboardHandler(editor.EditorHandler):
             self.trusted(api=route.startswith("/api/"))
             if route in ("/", "/monitor", "/logs", "/about"):
                 page = (HERE / "dashboard.html").read_text(encoding="utf-8")
-                page = page.replace("__NONCE__", self.server.nonce)
+                page = render_workspace_page(page, route, self.server.nonce)
                 if route == "/about":
-                    guide_path = HERE / "about_guide.html"
-                    if guide_path.is_file():
-                        guide = guide_path.read_text(encoding="utf-8")
-                    else:
-                        guide = render_about_guide((HERE / "README_GITHUB.md").read_text(encoding="utf-8"))
-                    page = page.replace("<!-- ABOUT_GUIDE -->", guide, 1)
+                    page = page.replace("<!-- ABOUT_GUIDE -->", load_about_guide(HERE), 1)
                 self.respond(page, kind="text/html; charset=utf-8", support_chat=route not in ("/logs", "/about"))
             elif route == "/api/logs":
                 kind = parse_qs(urlsplit(self.path).query).get("kind", [""])[0]
@@ -60,8 +93,7 @@ class DashboardHandler(editor.EditorHandler):
                     raise editor.EditorError("Неизвестный вид лога.")
                 self.respond({"path": "logs/" + LOG_FILES[kind], **read_log_tail(self.server.store.project, kind)})
             elif route == "/editor":
-                page = editor.HTML.replace("__NONCE__", self.server.nonce)
-                page = page.replace('<div class="topbar-right">', '<div class="topbar-right"><a class="btn secondary" style="text-decoration:none" href="/">Главная</a>', 1)
+                page = render_workspace_page(editor.HTML, route, self.server.nonce)
                 self.respond(page, kind="text/html; charset=utf-8")
             else:
                 profiles = []
@@ -115,7 +147,8 @@ class DashboardHandler(editor.EditorHandler):
             route=urlsplit(self.path).path;self.trusted(api=route.startswith('/api/'))
             manager=self.server.autostart
             if route=='/autostart':
-                self.respond((HERE/'autostart.html').read_text(encoding='utf-8').replace('__NONCE__',self.server.nonce),kind='text/html; charset=utf-8')
+                page = (HERE / "autostart.html").read_text(encoding="utf-8")
+                self.respond(render_workspace_page(page, route, self.server.nonce), kind="text/html; charset=utf-8")
             elif route=='/api/autostart/boot':
                 profiles=[]
                 for mode in editor.MODES:
@@ -132,7 +165,8 @@ class DashboardHandler(editor.EditorHandler):
                 identity=parse_qs(urlsplit(self.path).query).get('id',[''])[0]
                 self.respond(manager.package(identity),kind='application/zip')
             elif route=='/api/autostart/log':
-                self.respond(manager.log_tail(parse_qs(urlsplit(self.path).query).get('id',[''])[0]))
+                query = parse_qs(urlsplit(self.path).query)
+                self.respond(manager.log_tail(query.get('id', [''])[0], query.get('log', [None])[0]))
             else:raise JobError('Не найдено.',404)
         except (JobError,editor.EditorError) as error:self.respond(dict(error=str(error)),error.status)
         except OSError:self.respond(dict(error='Нет доступа к файлам автозапусков.'),500)

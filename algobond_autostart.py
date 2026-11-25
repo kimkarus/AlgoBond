@@ -458,7 +458,10 @@ class JobManager:
         return dict(folder=folder,profiles=profiles,warnings=warnings)
 
     def status(self, identity):
-        path=self.safe('status/'+job_id(identity)+'.json')
+        return self.read_status(self.safe('status/'+job_id(identity)+'.json'))
+
+    @staticmethod
+    def read_status(path):
         try:
             result=json.loads(path.read_text(encoding='utf-8')) if path.stat().st_size<32768 else {}
             return result if isinstance(result,dict) else {}
@@ -744,12 +747,34 @@ class JobManager:
         if revision is not None and revision!=job['revision']:raise JobError('Задание изменено. Обновите список.',409)
         self.normalize(job);self.ensure_local_paths(job)
         if self.running(identity):raise JobError('Это задание уже выполняется.',409)
-        launch=self.safe('logs/'+identity+'_launcher.log');launch.parent.mkdir(parents=True,exist_ok=True)
-        with launch.open('ab') as stream:
-            process=subprocess.Popen(self.runner_command(job,manual=True),cwd=self.project,stdin=subprocess.DEVNULL,stdout=stream,stderr=subprocess.STDOUT,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0),start_new_session=os.name!='nt')
-        return dict(requested=True,pid=process.pid,id=identity)
+        name = self.new_run_log(identity)
+        log = self.run_log_path(identity, name)
+        log.parent.mkdir(parents=True, exist_ok=True)
+        command = [*self.runner_command(job, manual=True), '--run-log', name]
+        with log.open('ab') as stream:
+            process = subprocess.Popen(
+                command, cwd=self.project, stdin=subprocess.DEVNULL, stdout=stream, stderr=subprocess.STDOUT,
+                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0), start_new_session=os.name != 'nt',
+            )
+        return dict(requested=True, pid=process.pid, id=identity, log=name)
 
-    def run(self, identity, manual=False):
+    @staticmethod
+    def new_run_log(identity):
+        stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')
+        return f'{identity}_{stamp}_{uuid.uuid4().hex[:8]}.log'
+
+    def run_log_path(self, identity, name):
+        if not isinstance(name, str) or not re.fullmatch(re.escape(job_id(identity)) + r'_\d{8}T\d{6}_[a-f0-9]{8}\.log', name):
+            raise JobError('Неизвестный журнал запуска.')
+        return self.safe('logs/' + name)
+
+    def run_status_path(self, identity, name):
+        log = self.run_log_path(identity, name)
+        return self.safe('status/' + log.stem + '.json')
+
+    def run(self, identity, manual=False, run_log=None):
+        name = run_log or self.new_run_log(identity)
+        log = self.run_log_path(identity, name)
         lease=FileLease(self.safe('locks/'+job_id(identity)+'.lock'))
         try:
             lease.__enter__()
@@ -760,10 +785,11 @@ class JobManager:
             job=self.read(identity)
             if not manual and not job['enabled']:return dict(skipped=True,reason='disabled')
             self.normalize(job);self.ensure_local_paths(job);launch=self.launch(job)
-            started=now();name=identity+'_'+datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')+'_'+uuid.uuid4().hex[:8]+'.log';log=self.safe('logs/'+name);log.parent.mkdir(parents=True,exist_ok=True)
+            started = now()
+            log.parent.mkdir(parents=True, exist_ok=True)
             self.write_status(identity,running=True,started_at=started,finished_at=None,exit_code=None,log=name,manual=manual,error=None)
             try:
-                with log.open('wb') as stream:
+                with log.open('ab') as stream:
                     if launch['interactive']:
                         stream.write('DEMO запускается в отдельной консоли. Ответы вводятся в её окне; вывод программы остаётся в консоли.\n'.encode('utf-8'));stream.flush()
                     process=subprocess.Popen(self.command(job,target=False),cwd=self.project,
@@ -784,13 +810,30 @@ class JobManager:
         finally:
             lease.__exit__()
 
-    def log_tail(self, identity):
-        job=self.read(identity,include_deleted=True);name=self.status(identity).get('log','')
-        if not re.fullmatch(identity+r'_\d{8}T\d{6}_[a-f0-9]{8}\.log',name):return dict(text='',log=None)
-        path=self.safe('logs/'+name)
+    def log_tail(self, identity, run_log=None):
+        self.read(identity, include_deleted=True)
+        state = self.status(identity)
+        name = run_log or state.get('log')
         try:
-            with path.open('rb') as stream:stream.seek(max(0,path.stat().st_size-16000));value=stream.read().decode('utf-8','replace')
-        except OSError:return dict(text='',log=name)
+            path = self.run_log_path(identity, name)
+        except JobError:
+            if run_log:
+                raise
+            return dict(text='', log=None, status=None)
+        status = self.read_status(self.run_status_path(identity, name)) if run_log else {}
+        if not status and state.get('log') == name:
+            if state.get('running') and not self.running(identity):
+                state = self.status(identity)
+                if state.get('log') == name and state.get('running'):
+                    state.update(running=False, error='Процесс завершился без итогового статуса.')
+            if state.get('log') == name:
+                status = {key: state.get(key) for key in ('running', 'finished_at', 'exit_code', 'error')}
+        try:
+            with path.open('rb') as stream:
+                stream.seek(max(0, path.stat().st_size - 16000))
+                value = stream.read(16000).decode('utf-8', 'replace')
+        except OSError:
+            value = ''
         for folder in ('monitoring','trading'):
             for config in (self.project/'data/configs/accounts'/folder).glob('*.ini'):
                 parser=configparser.ConfigParser(interpolation=None)
@@ -799,7 +842,7 @@ class JobManager:
                 for section in parser.sections():
                     for key,secret in parser.items(section):
                         if any(word in key for word in ('token','password','license_key','secret')) and len(secret)>=8:value=value.replace(secret,'••••••••')
-        return dict(text=value,log=name)
+        return dict(text=value, log=name, status=status or None)
 
 
 def main(argv=None):
@@ -808,21 +851,43 @@ def main(argv=None):
     parser.add_argument('--project',type=Path,default=Path(__file__).resolve().parent)
     parser.add_argument('--id');parser.add_argument('--file',type=Path);parser.add_argument('--output',type=Path)
     parser.add_argument('--manual',action='store_true');parser.add_argument('--cleanup',action='store_true');parser.add_argument('--replace',action='store_true')
-    args=parser.parse_args(argv);manager=JobManager(args.project)
+    parser.add_argument('--run-log', help=argparse.SUPPRESS)
+    args=parser.parse_args(argv)
+    if args.run_log and (args.operation != 'run' or not args.manual):
+        parser.error('--run-log требует run --manual')
+    manager=JobManager(args.project)
     if hasattr(sys.stdout,'reconfigure'):sys.stdout.reconfigure(encoding='utf-8')
+    run_status = None
     try:
         if args.operation=='list':result=manager.list()
         elif args.operation=='preview':result=manager.preview(json.loads(args.file.read_text(encoding='utf-8')))
         elif args.operation=='import-definition':result=manager.import_definition(json.loads(args.file.read_text(encoding='utf-8')),args.cleanup,args.replace)
-        elif args.operation=='run':result=manager.run(job_id(args.id),args.manual)
+        elif args.operation=='run':
+            identity = job_id(args.id)
+            if args.run_log:
+                run_status = manager.run_status_path(identity, args.run_log)
+            result = manager.run(identity, args.manual, args.run_log)
         elif args.operation=='export':
             if not args.output:raise JobError('Укажите --output для ZIP.')
             args.output.write_bytes(manager.package(job_id(args.id)));result=dict(file=str(args.output))
         else:result=manager.control(job_id(args.id),args.operation)
-        print(json.dumps(result,ensure_ascii=False,indent=2))
+        if run_status is not None:
+            if result.get('skipped'):
+                manager.write_json(run_status, dict(running=False, finished_at=now(), exit_code=1,
+                                                    error='Это задание уже выполняется.'))
+                return 1
+            manager.write_json(run_status, dict(running=False, finished_at=now(), exit_code=result['exit_code'],
+                                                error=None))
+        else:
+            print(json.dumps(result,ensure_ascii=False,indent=2))
         return result.get('exit_code',0) if isinstance(result,dict) and isinstance(result.get('exit_code'),int) else 0
     except (JobError,OSError,ValueError) as error:
-        print(json.dumps(dict(error=str(error)),ensure_ascii=False));return 1
+        print(json.dumps(dict(error=str(error)),ensure_ascii=False), flush=True)
+        if run_status is not None:
+            with contextlib.suppress(JobError, OSError):
+                manager.write_json(run_status, dict(running=False, finished_at=now(), exit_code=1,
+                                                    error='Не удалось запустить задание. Подробности в выводе.'))
+        return 1
 
 
 if __name__=='__main__':
